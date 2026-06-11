@@ -495,22 +495,6 @@
       </div>
     </div>
 
-    <div class="part hidden" id="part-method">
-      <div class="method-card">
-        <div class="method-title">💡 請選擇寫作方法：</div>
-        <div class="method-grid">
-          <div class="method-opt" id="m-seq" onclick="chooseMethod('seq')">
-            <h3>順敘法 ➡️</h3>
-            <p style="font-size:16px; color:#666; font-weight:normal; margin-top:4px;">按照時間發生的先後順序來記錄事情。</p>
-          </div>
-          <div class="method-opt" id="m-inv" onclick="chooseMethod('inv')">
-            <h3>倒敘法 ↩️</h3>
-            <p style="font-size:16px; color:#666; font-weight:normal; margin-top:4px;">先把精彩的結果寫在最前面，再回憶經過。</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div id="paragraphs-area"></div>
 
     <div class="flow-control">
@@ -659,10 +643,11 @@ function updateMeta() {
   state.week = document.getElementById("meta-week").value;
   state.weather = document.getElementById("weather-custom").value || document.getElementById("meta-weather").value;
   
-  if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
-    if(document.getElementById("part-method").classList.contains("hidden")) {
-      document.getElementById("part-method").classList.remove("hidden");
-      botSpeak(`日期和天氣都記錄好了！📆 ${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n接下來，你想用哪一種敍事手法來寫這篇日記呢？請點選左邊的「順敘法」或「倒敘法」！`);
+    if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
+    if(state.paragraphs.length === 0) {
+      botSpeak(`日期和天氣都記錄好了！📆 ${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n這是一個很好的開始。🏆\n\n我已經在左邊幫你準備好了「第一段」的寫作引導，你可以用語音錄下你的句子，完成後按檢查按鈕讓我看看喔！`);
+      state.method = 'seq'; // 預設使用順序法
+      addNewParagraphBlock();
     }
   }
 }
