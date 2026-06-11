@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>寫作助手----小筆．《___的一天》</title>
+<style>
+  /* 4. 底色設定與變數 */
+  :root {
+    --chat-bot-bg: #ffffff; /* 小筆對話框轉成白色 */
+    --chat-user-bg: #ffe0b2; /* 使用者發出的對話用淺橙色 */
+  }
+
+  /* 1. 所有字體放大 */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-size: 20px; /* 全域字體放大 */
+  }
+  
+  html, body {
+    height: 100%;
+    font-family: "PingFang TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+    background: #fef9f3;
+    color: #333;
+    overflow: hidden; /* 防止主頁面出現奇怪的雙滾動條 */
+  }
+  
+  /* 5. 隱藏頂部API的部分 */
+  .api-panel {
+    display: none !important;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    height: 100vh;
+    gap: 0;
+  }
+
+  /* LEFT canvas */
+  .canvas {
+    padding: 32px 40px;
+    overflow-y: auto;
+    background: #fff;
+    border-right: 3px dashed #ffd9a8;
+    height: 100%;
+  }
+  .part {
+    margin-bottom: 24px;
+    animation: fadeIn .4s ease;
+  }
+  .hidden { display: none !important; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .title-row {
+    font-size: 36px; /* 標題加大 */
+    text-align: center;
+    color: #d96b1e;
+    margin-bottom: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .date-row {
+    text-align: center;
+    font-size: 22px;
+    color: #555;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+/* 2. 所有下拉式選單的文字放大並置中 */
+  select {
+    font-size: 22px;
+    padding: 6px 16px;
+    border: 2px solid #ffcc99;
+    border-radius: 12px;
+    background: #fff;
+    color: #d96b1e;
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+    text-align-last: center;
+    transition: all 0.2s;
+    /* 👈 加上這行固定高度，依據你原本的字型與 padding，44px 左右最剛好 */
+    height: 44px;
+    /* 👈 加上這行，寬度就會隨選中字數自動變形 */
+    field-sizing: content;
+  }
+  select:hover {
+    background: #fff5eb;
+  }
+
+  .blank-btn {
+    display: inline-block;
+    min-width: 80px;
+    padding: 4px 12px;
+    border: 2px dashed #ffb873;
+    background: #fffdfa;
+    border-radius: 8px;
+    color: #999;
+    cursor: pointer;
+    text-align: center;
+    font-weight: normal;
+    font-size: 20px;
+  }
+  .blank-btn.filled {
+    border-style: solid;
+    color: #d96b1e;
+    font-weight: bold;
+    background: #fff5eb;
+  }
+
+  .method-card {
+    border: 2px solid #ffe0b2;
+    background: #fffbf7;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+  .method-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #b35916;
+    margin-bottom: 12px;
+  }
+  .method-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .method-opt {
+    border: 2px solid #ffd0a8;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-weight: bold;
+  }
+  .method-opt:hover {
+    background: #fff2e6;
+    border-color: #ff9e42;
+  }
+  .method-opt.active {
+    background: #ffecdb;
+    border-color: #e66a00;
+    color: #e66a00;
+    box-shadow: 0 4px 12px rgba(230,106,0,0.1);
+  }
+
+  /* Paragraph box */
+  .p-box {
+    border: 2px solid #ffe0cc;
+    background: #fffdfb;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(217,107,30,0.03);
+  }
+  .p-header {
+    font-size: 22px;
+    font-weight: bold;
+    color: #d96b1e;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .p-preview {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 60px;
+    line-height: 1.8;
+    margin-bottom: 16px;
+    font-size: 22px;
+  }
+  .sent-node {
+    display: inline;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .sent-node:hover {
+    background: #fff0e0;
+  }
+  .sent-node.ok {
+    border-bottom-color: #4caf50;
+    background: #f0f9f0;
+  }
+  .sent-node.ok:hover {
+    background: #e1f5e2;
+  }
+  .sent-node.highlight-active {
+    background: #fff59d !important;
+    box-shadow: 0 0 0 3px #fbc02d;
+  }
+
+  .editor-zone {
+    background: #fff8f2;
+    border: 1px dashed #ffcc99;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .editor-header {
+    font-size: 18px;
+    font-weight: bold;
+    color: #b35916;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* 輸入與文字區域放大 */
+  textarea, input[type="text"] {
+    width: 100%;
+    height: 100px;
+    font-size: 22px;
+    padding: 12px;
+    border: 2px solid #ffcc99;
+    border-radius: 10px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  textarea:focus, input[type="text"]:focus {
+    border-color: #ff9e42;
+    background: #fff;
+  }
+  textarea.checking {
+    background: #ffe6cc;
+    color: #b35916;
+  }
+
+  .history-zone {
+    margin-top: 12px;
+    border-top: 1px dashed #ffd0a8;
+    padding-top: 8px;
+  }
+  .history-title {
+    font-size: 16px;
+    color: #999;
+    margin-bottom: 6px;
+    font-weight: bold;
+  }
+  .history-item {
+    font-size: 18px;
+    color: #888;
+    background: #fcfcfc;
+    border-left: 3px solid #ccc;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+    border-radius: 0 6px 6px 0;
+    cursor: help;
+  }
+  .history-item:hover {
+    background: #f5f5f5;
+  }
+
+  .btn-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    background: #ff9e42;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: #e68220; }
+  .btn:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-green { background: #4caf50; }
+  .btn-green:hover { background: #388e3c; }
+  .btn-outline { background: #fff; color: #ff9e42; border: 2px solid #ff9e42; padding: 8px 18px; }
+  .btn-outline:hover { background: #fff5eb; }
+
+  .flow-control {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+  }
+
+  /* RIGHT chatbot */
+  .chatbot {
+    display: flex;
+    flex-direction: column;
+    background: #eef7f6;
+    border-left: 2px solid #d0e6e4;
+    height: 100vh; /* 限制當前頁面高度為限 */
+    overflow: hidden;
+  }
+  .chat-header {
+    background: #004d40;
+    color: #fff;
+    padding: 18px;
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+  }
+  .chat-msgs {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* 當訊息超過時使用內部滾動頁面 */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* 7. Chatbot 的字體調小 20% (32px * 0.8 = 25.6px -> 26px) */
+  .msg-bubble {
+    max-width: 85%;
+    padding: 16px 22px;
+    border-radius: 18px;
+    line-height: 1.6;
+    font-size: 26px; /* 字體微縮小 20%，更好閱讀 */
+    word-wrap: break-word;
+    white-space: pre-line;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+  }
+  
+  /* 4. 修改對話框底色 */
+  .msg-bubble.bot {
+    align-self: flex-start;
+    background: var(--chat-bot-bg); /* 白色 */
+    color: #004d40;
+    border-bottom-left-radius: 2px;
+    border: 2px solid #b2dfdb;
+  }
+  .msg-bubble.user {
+    align-self: flex-end;
+    background: var(--chat-user-bg); /* 淺橙色 */
+    color: #5d4037;
+    border-bottom-right-radius: 2px;
+    border: 2px solid #ffcc80;
+  }
+
+  .inline-opts {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .inline-opt-btn {
+    background: #fff;
+    border: 2px solid #009688;
+    color: #00796b;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 20px; /* 按鈕字體隨之同步微調 */
+    transition: all 0.2s;
+  }
+  .inline-opt-btn:hover {
+    background: #e0f2f1;
+    transform: translateY(-1px);
+  }
+
+  .chat-input-bar {
+    padding: 16px;
+    background: #fff;
+    border-top: 1px solid #dee7e6;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .chat-input-bar input {
+    flex: 1;
+    font-size: 22px;
+    padding: 12px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+  }
+  .chat-input-bar input:focus { border-color: #009688; }
+  
+  .mic-btn {
+    background: #ff5722;
+    color: #fff;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .mic-btn:hover { background: #e64a19; }
+  .mic-btn.active { background: #4caf50; animation: pulse 1.2s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(76,175,80,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(76,175,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+  }
+
+  /* Output box */
+  .clean-box {
+    margin-top: 32px;
+    background: #fffef2;
+    border: 3px double #e6a15c;
+    border-radius: 20px;
+    padding: 32px;
+    animation: fadeIn .6s ease;
+  }
+  .clean-label {
+    display: inline-block;
+    background: #e6a15c;
+    color: #fff;
+    font-size: 16px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+  .clean-box h2 { font-size: 28px; text-align: center; color: #8a4f1d; margin-bottom: 8px; }
+  .clean-date { text-align: center; font-size: 18px; color: #777; margin-bottom: 20px; }
+  .clean-box p { font-size: 22px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
+
+  /* Dots */
+  .dots { display: inline-block; font-weight: bold; animation: blink 1.4s infinite both; }
+  @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
+
+  /* Fireworks Canvas Overlay */
+  #fw-canvas {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 9999;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="fw-canvas"></canvas>
+
+<div class="api-panel">
+  <input type="text" id="api-url" value="https://api.deepseek.com/chat/completions" />
+  <input type="text" id="api-key" value="sk-b117de8f27274fadb80f7b988b93cfcc" />
+  <input type="text" id="api-model" value="deepseek-chat" />
+</div>
+
+<div class="app">
+  <div class="canvas" id="canvas">
+    
+    <div class="title-row">
+      《
+      <select id="topic-select" onchange="handleTopicChange()">
+        <option value="" disabled selected>請選擇心情</option>
+        <option value="愉快">愉快 ☀️</option>
+        <option value="難忘">難忘 🌟</option>
+        <option value="傷心">傷心 💧</option>
+      </select>
+      的一天》
+    </div>
+
+    <div class="part hidden" id="part-meta">
+      <div class="date-row">
+        <select id="meta-month" onchange="handleMonthChange()"></select> 月
+        <select id="meta-day" onchange="updateMeta()"></select> 日 
+        <span style="margin-left: 25px;">星期</span> <select id="meta-week" onchange="updateMeta()"></select>
+        <select id="meta-weather" onchange="handleWeatherSelect()" style="margin-left: 25px;"></select>
+        <input type="text" id="weather-custom" class="hidden" placeholder="例：微風細雨" style="width:140px; font-size:20px; padding:4px 8px; display:inline-block; border-radius:8px;" oninput="updateMeta()" />
+        <button id="mic-weather" class="mic-btn hidden" style="width:40px; height:40px; font-size:16px;" onclick="toggleMic('weather-custom','mic-weather')">🎙️</button>
+      </div>
+    </div>
+
+    <div class="part hidden" id="part-method">
+      <div class="method-card">
+        <div class="method-title">💡 請選擇寫作方法：</div>
+        <div class="method-grid">
+          <div class="method-opt" id="m-seq" onclick="chooseMethod('seq')">
+            <h3>順敘法 ➡️</h3>
+            <p style="font-size:16px; color:#666; font-weight:normal; margin-top:4px;">按照時間發生的先後順序來記錄事情。</p>
+          </div>
+          <div class="method-opt" id="m-inv" onclick="chooseMethod('inv')">
+            <h3>倒敘法 ↩️</h3>
+            <p style="font-size:16px; color:#666; font-weight:normal; margin-top:4px;">先把精彩的結果寫在最前面，再回憶經過。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="paragraphs-area"></div>
+
+    <div class="flow-control">
+      <button id="btn-next-p" class="btn hidden" onclick="addNewParagraphBlock()">➕ 寫下一段</button>
+      <button id="btn-finish" class="btn btn-green hidden" onclick="finalizeEssay()">🎉 我寫完完整日記了！</button>
+    </div>
+
+    <div id="clean-version-anchor"></div>
+
+  </div>
+
+  <div class="chatbot">
+    <div class="chat-header">👩‍🏫 寫作助手----小筆</div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-input-bar">
+      <input type="text" id="chat-input" placeholder="歡迎發問" onkeypress="if(event.key==='Enter') userSubmitChat()" />
+      <button id="mic-chat" class="mic-btn" onclick="toggleMic('chat-input','mic-chat')">🎙️</button>
+      <button class="btn" style="padding:10px 24px;" onclick="userSubmitChat()">發送</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* GLOBAL STATE MANAGEMENT */
+const state = {
+  topic: "",
+  month: "",
+  day: "",
+  week: "",
+  weather: "",
+  method: "", 
+  paragraphs: [], 
+  currentPIndex: -1,
+  currentSIndex: -1,
+  aiEvaluating: false
+};
+
+// 中國數字映射表
+const chineseNumbers = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "二十一", "二十二", "二十三", "二十四", "二十五", "二十六", "二十七", "二十八", "二十九", "三十", "三十一"];
+
+const seqStructure = [
+  { name: "第一段：開始", prompt: "" },
+  { name: "第二段：經過", prompt: "" },
+  { name: "第三段：經過", prompt: "" },
+  { name: "第四段：結局", prompt: "" }
+];
+
+const invStructure = [
+  { name: "第一段：結局", prompt: "先寫今天最終的心情和結果。" },
+  { name: "第二段：開始", prompt: "把時間拉回今天的一大早，這件事情究竟是怎麼開始的？" },
+  { name: "第三段：經過", prompt: "中間的經過是怎樣的呢，試試詳細地描述。" },
+  { name: "第四段：結局", prompt: "回到現在，再次回味今天經歷的一切，你心裡有甚麼深刻的感觸？" }
+];
+
+/* INITIALIZATION ON LOAD */
+window.addEventListener("DOMContentLoaded", () => {
+  initMetaDropdowns();
+  botSpeak("小朋友您好！我是你的寫作助手——小筆。🎉\n\n你想寫一篇怎樣的日記呢？先選個「心情」吧！");
+});
+
+function initMetaDropdowns() {
+  const m = document.getElementById("meta-month");
+  // 修正：不用 Array.from 和箭頭函式，改用最安全的標準 for 迴圈
+  let monthHtml = '<option value="" disabled selected> </option>';
+  for (let i = 1; i <= 12; i++) {
+    monthHtml += '<option value="' + i + '">' + chineseNumbers[i] + '</option>';
+  }
+  m.innerHTML = monthHtml;
+  
+  // 日子預設先填入31天
+  fillDaysDropdown(31);
+  
+  const w = document.getElementById("meta-week");
+  const weeks = ["一","二","三","四","五","六","日"];
+  let weekHtml = '<option value="" disabled selected> </option>';
+  for (let i = 0; i < weeks.length; i++) {
+    weekHtml += '<option value="' + weeks[i] + '">' + weeks[i] + '</option>';
+  }
+  w.innerHTML = weekHtml;
+  
+  const wt = document.getElementById("meta-weather");
+  const weathers = ["☀️ 晴朗","☁️ 多雲","🌧️ 下雨","⛈️ 雷暴","🌬️ 大風"];
+  let weatherHtml = '<option value="" disabled selected>請選擇天氣</option>';
+  for (let i = 0; i < weathers.length; i++) {
+    weatherHtml += '<option value="' + weathers[i] + '">' + weathers[i] + '</option>';
+  }
+  weatherHtml += '<option value="custom">🎙️ 自訂天氣(語音)</option>';
+  wt.innerHTML = weatherHtml;
+}
+
+// 根據傳入的天數動態填入日子下拉選單
+function fillDaysDropdown(maxDays) {
+  const d = document.getElementById("meta-day");
+  const currentVal = d.value;
+  
+  // 修正：同樣改用最安全的標準 for 迴圈
+  let dayHtml = '<option value="" disabled selected> </option>';
+  for (let i = 1; i <= maxDays; i++) {
+    dayHtml += '<option value="' + i + '">' + chineseNumbers[i] + '</option>';
+  }
+  d.innerHTML = dayHtml;
+  
+  if(currentVal && parseInt(currentVal) <= maxDays) {
+    d.value = currentVal;
+  }
+}
+
+/* 3. 當點選題目選項，右側將把選項作為對話發出，Chatbot給予適當回應 */
+function handleTopicChange() {
+  const val = document.getElementById("topic-select").value;
+  state.topic = val;
+  
+  // 右側自動替學生發出對話般的效果
+  userSpeak(`我想寫《${val}的一天》！`);
+  
+  // 顯示下一部分的日期填寫 UI
+  document.getElementById("part-meta").classList.remove("hidden");
+  
+  // 小筆給予適當的熱情回應
+  setTimeout(() => {
+    botSpeak(`好題目！「${val}的一天」聽起來真是個很好的寫作主題。✨\n\n接着，請選擇日期、星期及天氣。`);
+  }, 400);
+}
+
+function handleWeatherSelect() {
+  const select = document.getElementById("meta-weather");
+  const customInput = document.getElementById("weather-custom");
+  const micBtn = document.getElementById("mic-weather");
+  if (select.value === "custom") {
+    customInput.classList.remove("hidden");
+    micBtn.classList.remove("hidden");
+    customInput.value = "";
+  } else {
+    customInput.classList.add("hidden");
+    micBtn.classList.add("hidden");
+    customInput.value = select.value;
+  }
+  updateMeta();
+}
+
+function updateMeta() {
+  const mVal = document.getElementById("meta-month").value;
+  const dVal = document.getElementById("meta-day").value;
+  state.month = mVal ? chineseNumbers[parseInt(mVal)] : "";
+  state.day = dVal ? chineseNumbers[parseInt(dVal)] : "";
+  state.week = document.getElementById("meta-week").value;
+  state.weather = document.getElementById("weather-custom").value || document.getElementById("meta-weather").value;
+  
+  if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
+    if(document.getElementById("part-method").classList.contains("hidden")) {
+      document.getElementById("part-method").classList.remove("hidden");
+      botSpeak(`日期和天氣都記錄好了！📆 ${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n接下來，你想用哪一種敍事手法來寫這篇日記呢？請點選左邊的「順敘法」或「倒敘法」！`);
+    }
+  }
+}
+
+function chooseMethod(type) {
+  state.method = type;
+  document.getElementById("m-seq").classList.toggle("active", type==='seq');
+  document.getElementById("m-inv").classList.toggle("active", type==='inv');
+  
+  // 清除舊段落並初始化
+  document.getElementById("paragraphs-area").innerHTML = "";
+  state.paragraphs = [];
+  
+  botSpeak(`你選擇了「${type==='seq'?'順敘法':'倒敘法'}」！這是一個很好的開始。🏆\n\n我已經在左邊幫你準備好了「第一段」的寫作引導，你可以用語音錄下你的句子，完成後按檢查按鈕讓我看看喔！`);
+  
+  addNewParagraphBlock();
+}
+
+function addNewParagraphBlock() {
+  const structures = state.method === 'seq' ? seqStructure : invStructure;
+  const idx = state.paragraphs.length;
+  if(idx >= structures.length) return;
+  
+  const config = structures[idx];
+  const pObj = {
+    meta: config,
+    sentences: [] 
+  };
+  state.paragraphs.push(pObj);
+  
+  const pHtml = `
+    <div class="p-box" id="p-box-${idx}">
+      <div class="p-header">
+        <span>${config.name}</span>
+        <span style="font-size:15px; color:#a6622e; font-weight:normal; background:#fff0e0; padding:4px 10px; border-radius:20px;">
+          ${config.prompt}
+        </span>
+      </div>
+      <div class="p-preview" id="p-prev-${idx}">
+        <span style="color:#bbb; font-size:18px;"> </span>
+      </div>
+      <div class="editor-zone">
+        <div class="editor-header">
+          <span>✏️ 句子輸入與檢查</span>
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️ 語音輸入</button>
+        </div>
+        <textarea id="p-input-${idx}" placeholder="請在此輸入文字"></textarea>
+        <div class="btn-row">
+          <button class="btn" onclick="checkSentenceAction(${idx})">🔍 檢查句子</button>
+        </div>
+        <div class="history-zone hidden" id="p-hist-zone-${idx}">
+          <div class="history-title">📋 本段已修改的舊句子：</div>
+          <div id="p-hist-list-${idx}"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById("paragraphs-area").insertAdjacentHTML("beforeend", pHtml);
+  document.getElementById("btn-next-p").classList.add("hidden");
+  
+  // 滾動定位
+  document.getElementById(`p-box-${idx}`).scrollIntoView({ behavior: "smooth" });
+  
+  // 檢查是否所有段落都開完了，若開完則隱藏下一段按鈕
+  if(state.paragraphs.length === structures.length) {
+    document.getElementById("btn-next-p").classList.add("hidden");
+  }
+}
+
+function renderParagraphText(pIdx) {
+  const pObj = state.paragraphs[pIdx];
+  const div = document.getElementById(`p-prev-${pIdx}`);
+  if(pObj.sentences.length === 0) {
+    div.innerHTML = `<span style="color:#bbb; font-size:18px;">（）</span>`;
+    return;
+  }
+  div.innerHTML = "";
+  if(pIdx === 0 || state.method === 'inv' || pIdx > 0) {
+    // 段首空兩格效果
+    const indent = document.createElement("span");
+    indent.style.display = "inline-block";
+    indent.style.width = "2em";
+    div.appendChild(indent);
+  }
+  pObj.sentences.forEach((sObj, sIdx) => {
+    if(sObj.status === "hidden-node") return;
+    const span = document.createElement("span");
+    span.className = "sent-node " + sObj.status;
+    span.id = `node-${pIdx}-${sIdx}`;
+    span.innerText = sObj.text;
+    span.onclick = () => clickedConfirmedSentence(pIdx, sIdx);
+    div.appendChild(span);
+  });
+}
+
+function renderHistoryList(pIdx) {
+  const pObj = state.paragraphs[pIdx];
+  const zone = document.getElementById(`p-hist-zone-${pIdx}`);
+  const list = document.getElementById(`p-hist-list-${pIdx}`);
+  
+  // 找出有歷史记录的
+  const filtered = pObj.sentences.filter(s => s.history && s.history.length > 0);
+  if(filtered.length === 0) {
+    zone.classList.add("hidden");
+    return;
+  }
+  zone.classList.remove("hidden");
+  list.innerHTML = "";
+  
+  filtered.forEach(s => {
+    s.history.forEach(hText => {
+      const item = document.createElement("div");
+      item.className = "history-item";
+      item.innerText = `舊版：${hText}`;
+      item.onmouseenter = () => {
+        const node = document.getElementById(`node-${pIdx}-${s.idx}`);
+        if(node) node.classList.add("highlight-active");
+      };
+      item.onmouseleave = () => {
+        const node = document.getElementById(`node-${pIdx}-${s.idx}`);
+        if(node) node.classList.remove("highlight-active");
+      };
+      list.appendChild(item);
+    });
+  });
+}
+
+/* SENTENCE CHECKING LOGIC WITH LLM */
+async function checkSentenceAction(pIdx) {
+  if(state.aiEvaluating) return;
+  const ta = document.getElementById(`p-input-${pIdx}`);
+  let text = ta.value.trim();
+  if(!text) {
+    botSpeak("小朋友，要先輸入完整的句子，小筆才能幫你檢查喔！");
+    return;
+  }
+  
+  state.currentPIndex = pIdx;
+  ta.classList.add("checking");
+  setAiEvaluating(true);
+  
+  botSpeak("我正在仔細閱讀你的句子，請稍等一下......⏳");
+  
+  const sysPrompt = `你是一位資深的小學語文作文批改老師。請審核學生寫的一句日記。請以小學生的理解水平，嚴格判斷它在"日常語法上是否通順、有無錯別字"。
+請務必嚴格以 JSON 格式回覆，不要帶有任何 Markdown 標籤或其餘文字。
+格式要求如下：
+{"isFluent": true或false, "suggestion": "如果通順，請給出一句加入生動詞彙(修辭、成語)的進階升級優化句；如果不通順，請給出一句修改通順後的句子"}
+注意：isFluent 的判斷要嚴格，有倒裝、語病、斷句不清或無主語造成歧義應為 false。`;
+
+  const userPrompt = `學生的寫作題目：《${state.topic}的一天》\n當前段落位置：${state.paragraphs[pIdx].meta.name}\n學生剛才寫下的句子：${text}`;
+  
+  const res = await callLLM(sysPrompt, userPrompt);
+  ta.classList.remove("checking");
+  setAiEvaluating(false);
+  
+  if(!res) {
+    botSpeak("唉呀，老師剛才稍微分心了，能再點一次按鈕讓我檢查一遍嗎？");
+    return;
+  }
+  
+  try {
+    const cleanJson = res.replace(/```json/g, "").replace(/```/g, "").trim();
+    const data = JSON.parse(cleanJson);
+    state.tempAnalysis = {
+      originalText: text,
+      isFluent: data.isFluent,
+      suggestion: data.suggestion
+    };
+    
+    // 詢問學生自主判斷
+    botSpeak(`我看完了！重新審視你剛才在暫存區寫的這句話：\n「${text}」\n\n你自己讀一遍，你覺得這句話通順嗎？🤔`, [
+      { text: "👍 讀起來很通順！", action: "studentEvaluateFeedback(true)" },
+      { text: "🤔 好像有點不通順/有錯字", action: "studentEvaluateFeedback(false)" }
+    ]);
+    
+  } catch(e) {
+    console.error(e);
+    // 備用容錯方案
+    state.tempAnalysis = { originalText: text, isFluent: true, suggestion: text };
+    applySentenceDirectly(pIdx, text);
+  }
+}
+
+function studentEvaluateFeedback(studentChoice) {
+  const pIdx = state.currentPIndex;
+  const ana = state.tempAnalysis;
+  
+  if(ana.isFluent === true && studentChoice === true) {
+    botSpeak(`哈哈，你的語感真好！這句話確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
+      { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
+      { text: "🔒 不用了，直接放入正式段落", action: "applyOriginalSentence()" }
+    ]);
+  } else if(ana.isFluent === true && studentChoice === false) {
+    botSpeak(`其實這句話已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
+      { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
+      { text: "🔒 沒關係，維持原句收錄", action: "applyOriginalSentence()" }
+    ]);
+  } else {
+    // 句子不通順
+    if(studentChoice === true) {
+      botSpeak(`你的句子有點語法問題，這句讀起來確實有點不流暢。\n老師建議你可以這樣修改，語意會更清晰生動：\n\n「${ana.suggestion}」`, [
+        { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
+      ]);
+    } else {
+      botSpeak(`你很有自省與覺察能力呢！這句讀起來確實有點不流暢。\n老師建議你可以這樣修改，語意會更清晰生動：\n\n「${ana.suggestion}」`, [
+        { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
+      ]);
+    }
+  }
+}
+
+function showAdvancedSuggestion() {
+  const ana = state.tempAnalysis;
+  
+  // 顯示 AI 給出的升級優化句
+  botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n「${ana.suggestion}」\n\n你喜歡這個更生動的句子嗎？`, [
+    { text: "❤️ 哇！用這個升級版寫法", action: "applyAdvancedSentence()" },
+    { text: "🌿 不用了，我想用我原本寫的", action: "applyOriginalSentence()" }
+  ]);
+}
+
+function applyAdvancedSentence() {
+  const pIdx = state.currentPIndex;
+  const advancedText = state.tempAnalysis.suggestion; // 取得優化句
+  
+  const pObj = state.paragraphs[pIdx];
+  const newIdx = pObj.sentences.length;
+  
+  // 安全做法：直接收錄進階句子，不強制塞入歷史紀錄，避免觸發原版 renderHistoryList 的 Bug
+  pObj.sentences.push({
+    idx: newIdx,
+    text: advancedText,
+    status: "ok",
+    history: []
+  });
+  
+  // 清空輸入框並重新渲染畫面
+  clearInputAndRefresh(pIdx);
+  botSpeak("漂亮！生動的升級版句子已經完美放入你的日記囉！加油，繼續寫下一句吧。🌟");
+  checkFlowButtons();
+}
+
+function applyOriginalSentence() {
+  const pIdx = state.currentPIndex;
+  const text = state.tempAnalysis.originalText;
+  
+  const pObj = state.paragraphs[pIdx];
+  const newIdx = pObj.sentences.length;
+  pObj.sentences.push({
+    idx: newIdx,
+    text: text,
+    status: "ok",
+    history: []
+  });
+  
+  clearInputAndRefresh(pIdx);
+  botSpeak("成功把你的原創句子收錄進日記了！現在可以寫下一句。🌿");
+  checkFlowButtons();
+}
+
+function rejectAndRewriteSelf() {
+  const pIdx = state.currentPIndex;
+  const original = state.tempAnalysis.originalText;
+  
+  const pObj = state.paragraphs[pIdx];
+  const mockIdx = pObj.sentences.length;
+  pObj.sentences.push({
+    idx: mockIdx,
+    text: "", 
+    status: "hidden-node",
+    history: [original]
+  });
+  
+  document.getElementById(`p-input-${pIdx}`).focus();
+  renderHistoryList(pIdx);
+  
+  botSpeak("沒問題，舊句子幫你存到下方了。你可以參考老師剛才的提示，重新輸入句子！✏️");
+}
+
+function clearInputAndRefresh(pIdx) {
+  document.getElementById(`p-input-${pIdx}`).value = "";
+  renderParagraphText(pIdx);
+  renderHistoryList(pIdx);
+}
+
+function clickedConfirmedSentence(pIdx, sIdx) {
+  const sObj = state.paragraphs[pIdx].sentences[sIdx];
+  if(!sObj || sObj.status !== "ok") return;
+  
+  state.currentPIndex = pIdx;
+  state.currentSIndex = sIdx;
+  
+  botSpeak(`你點選了已經寫好的這句話：\n「${sObj.text}」\n\n這句話你想怎麼處理呢？✨`, [
+    { text: "✍️ 我想重新修改", action: "rollbackToEditor()" },
+    { text: "🌸 沒事，只是看一看", action: "botSpeak('哈哈，這句寫得很棒，繼續保持！', [])" }
+  ]);
+}
+
+async function reOptimizeSentence() {
+  // Removed advanced optimization flow
+}
+
+function confirmReOptimizeUpdate() {
+  // Removed
+}
+
+function rollbackToEditor() {
+  const pIdx = state.currentPIndex;
+  const sIdx = state.currentSIndex;
+  const pObj = state.paragraphs[pIdx];
+  const sObj = pObj.sentences[sIdx];
+  
+  const currentValInEditor = document.getElementById(`p-input-${pIdx}`).value.trim();
+  if(currentValInEditor.length > 0) {
+    botSpeak("❌ 哎呀，你還有正在寫的字，請先把它清空、或是點擊檢查後，再把這一句退回修改喔！");
+    return;
+  }
+  
+  document.getElementById(`p-input-${pIdx}`).value = sObj.text;
+  
+  pObj.sentences.splice(sIdx, 1);
+  pObj.sentences.forEach((s, i) => s.idx = i);
+  
+  renderParagraphText(pIdx);
+  renderHistoryList(pIdx);
+  document.getElementById(`p-input-${pIdx}`).focus();
+  
+  botSpeak("修改句子後，記得再次點擊檢查按鈕讓我看看喔。✍️");
+  checkFlowButtons();
+}
+
+/* FLOW NAVIGATION BUTTON TRIGGERS */
+function checkFlowButtons() {
+  const structures = state.method === 'seq' ? seqStructure : invStructure;
+  const currentCount = state.paragraphs.length;
+  
+  const lastP = state.paragraphs[currentCount - 1];
+  const hasSentences = lastP && lastP.sentences.filter(s=>s.status==="ok").length > 0;
+  
+  const btnNext = document.getElementById("btn-next-p");
+  const btnFinish = document.getElementById("btn-finish");
+  
+  if(hasSentences) {
+    if(currentCount < structures.length) {
+      btnNext.classList.remove("hidden");
+    } else {
+      btnNext.classList.add("hidden");
+    }
+    if(currentCount >= 3) {
+      btnFinish.classList.remove("hidden");
+    }
+  } else {
+    btnNext.classList.add("hidden");
+    btnFinish.classList.add("hidden");
+  }
+}
+
+async function finalizeEssay() {
+  setAiEvaluating(true);
+  botSpeak("哇！太了不起了，你竟然獨立完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......✨");
+  
+  let fullContent = `題目：《${state.topic}的一天》\n日期：${state.month}月${state.day}日    星期${state.week}   ${state.weather}\n\n`;
+  state.paragraphs.forEach(p => {
+    const pText = p.sentences.filter(s=>s.status==="ok").map(s=>s.text).join("");
+    fullContent += `【${p.meta.name}】\n${pText}\n\n`;
+  });
+  
+  const sysPrompt = `你是一位超級溫柔、善於鼓勵孩子的小學語文名師。學生的日記已經大功告成。
+請針對學生的文章內容給出一封極具親和力、讚美與熱情鼓勵的點評信。
+信中要挑出學生寫得好的生動句子或詞彙進行具體誇獎，字數控制在180字以內。
+請用小學生能聽懂的語氣，最後祝他寫作進步。`;
+
+  const review = await callLLM(sysPrompt, fullContent);
+  setAiEvaluating(false);
+  
+  if(review) {
+    botSpeak(`🎉【小筆的結業點評信】🎉\n\n${review}`);
+  } else {
+    botSpeak(`🎉 恭喜你完成草稿！今天你非常認真，每句話都有用心推敲，小筆為你感到無比驕傲！繼續保持這份熱情，你一定會成為寫作小達人的！🌟`);
+  }
+  
+  renderCleanVersion();
+  startFireworks();
+}
+
+function renderCleanVersion() {
+  let el = document.getElementById("clean-version");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "clean-version";
+    el.className = "clean-box";
+    document.getElementById("clean-version-anchor").appendChild(el);
+  }
+  const title = `《${state.topic}的一天》`;
+  const date = `${state.month}月${state.day}日   星期${state.week}   ${state.weather}`;
+  const paras = state.paragraphs.map(p=>{
+    return p.sentences.filter(s=>s.status==="ok").map(s=>s.text).join("");
+  }).filter(t=>t.length>0);
+  
+  el.innerHTML = `
+    <div class="clean-label">✨ 恭喜完稿！整潔版日記大成 ✨</div>
+    <h2>${escapeHtml(title)}</h2>
+    <div class="clean-date">${escapeHtml(date)}</div>
+    ${paras.map(p=>`<p>${escapeHtml(p)}</p>`).join("")}
+  `;
+  el.scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+/* 6. 當學生問「接下來應該寫甚麼」，Chatbot 可根據已經寫了的句子，作適量的引導，切勿提供答案 */
+async function userSubmitChat() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if(!text) return;
+  
+  userSpeak(text);
+  input.value = "";
+  
+  setAiEvaluating(true);
+  
+  let writtenContext = "";
+  state.paragraphs.forEach((p, idx) => {
+    const txt = p.sentences.filter(s=>s.status==="ok").map(s=>s.text).join("");
+    if(txt) {
+      writtenContext += `【${p.meta.name}已寫內容】：${txt}\n`;
+    }
+  });
+  if(!writtenContext) {
+    writtenContext = "目前學生剛選定題目與日記表頭，正準備要開始動筆寫第一句話。";
+  }
+  
+  let sysPrompt = "";
+  
+  if(text.includes("接下來應該寫甚麼") || text.includes("接下來寫什麼") || text.includes("怎麼寫") || text.includes("不知道寫什麼")) {
+    sysPrompt = `
+    你是一位耐心、溫柔的小學寫作教室引導老師「小筆」。
+    當小學生卡住、不知道接下來該寫甚麼時，你的任務是根據他「目前已經寫出來的句子進度」給予適量的啟發和提問。
+    
+    ⚠️【鐵律規則】：
+    1. 絕對、切勿提供任何具體的句子範例、完整的答案，也不可以幫他代寫！
+    2. 你必須使用「溫柔的問句」來引導他思考。例如：「你看到媽媽開心的表情，當時你有對她說甚麼嗎？」或「在去公園的路上，有沒有看見什麼好玩的東西呢？」
+    3. 字數嚴格控制在 100 字以內，語氣要非常有耐心、充滿愛心。
+    `;
+  } else {
+    sysPrompt = `你是一位非常溫柔和藹的小學作文老師「小筆」。請回答學生關於寫作的日常閒聊或疑問。字數在100字內，保持童真口吻。`;
+  }
+  
+  const reply = await callLLM(sysPrompt, `文章心情題目：《${state.topic}的一天》\n\n【當前寫作進度結構】：\n${writtenContext}\n\n學生此時問你：${text}`);
+  setAiEvaluating(false);
+  
+  if(reply) {
+    botSpeak(reply);
+  } else {
+    botSpeak("想一想，接下來發生了什麼特別的事呢？你看到了什麼有趣的畫面？或者心情產生了什麼微小的變化？試著寫寫看，老師隨時幫你檢查！");
+  }
+}
+
+/* CHAT UI HELPERS */
+function botSpeak(text, options = []) {
+  const container = document.getElementById("chat-msgs");
+  
+  const loader = document.getElementById("ai-loader");
+  if(loader) loader.remove();
+  
+  const b = document.createElement("div");
+  b.className = "msg-bubble bot";
+  b.innerText = text;
+  
+  if(options.length > 0) {
+    const optDiv = document.createElement("div");
+    optDiv.className = "inline-opts";
+    options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "inline-opt-btn";
+      btn.innerText = opt.text;
+      btn.setAttribute("onclick", opt.action);
+      optDiv.appendChild(btn);
+    });
+    b.appendChild(optDiv);
+  }
+  
+  container.appendChild(b);
+  
+  // 讓滾動頁面自動置底，確保只顯示最新訊息，將舊訊息推上去
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 30);
+}
+
+function userSpeak(text) {
+  const container = document.getElementById("chat-msgs");
+  const u = document.createElement("div");
+  u.className = "msg-bubble user";
+  u.innerText = text;
+  container.appendChild(u);
+  
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 30);
+  
+  showAiLoader();
+}
+
+function showAiLoader() {
+  const container = document.getElementById("chat-msgs");
+  if(document.getElementById("ai-loader")) return;
+  
+  const l = document.createElement("div");
+  l.className = "msg-bubble bot";
+  l.id = "ai-loader";
+  l.innerHTML = `小筆正在思考中<span class="dots">...</span>`;
+  container.appendChild(l);
+  container.scrollTop = container.scrollHeight;
+}
+
+function setAiEvaluating(val) {
+  state.aiEvaluating = val;
+  if(val) showAiLoader();
+  else {
+    const l = document.getElementById("ai-loader");
+    if(l) l.remove();
+  }
+}
+
+/* UNIVERSAL API FETCH CALL */
+async function callLLM(sys, user) {
+  const url = document.getElementById("api-url").value.trim();
+  const key = document.getElementById("api-key").value.trim();
+  const model = document.getElementById("api-model").value.trim();
+  if(!key) {
+    alert("請設定 API 金鑰！");
+    return null;
+  }
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: "system", content: sys },
+          { role: "user", content: user }
+        ],
+        temperature: 0.5
+      })
+    });
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch(e) {
+    console.error(e);
+    return null;
+  }
+}
+
+/* HELPER FUNCTIONS */
+function giveRhetoricTip(t){
+  if(/很|非常/.test(t)) return "試著把『很/非常』換成比喻或四字成語，像是把『心情很高興』改成『心花怒放』，文章會更耀眼喔！";
+  if(/看見|聽到|覺得/.test(t)) return "運用你的五感魔法！除了『看見』，也可以描寫聲音的節奏或皮膚感覺到的微風喔！";
+  return "嘗試在句子裡加上一種類比或擬人手法，例如：『太陽公公溫柔地對我微笑』，會讓句子充滿童趣與生命力！";
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+/* SPEECH RECOGNITION (MIC) SYSTEM */
+let recognition = null;
+let activeMicId = null;
+function toggleMic(targetInputId, micBtnId) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert("很抱歉，您的瀏覽器不支援語音輸入功能，建議使用 Google Chrome 瀏覽器喔！");
+    return;
+  }
+  const btn = document.getElementById(micBtnId);
+  
+  if(activeMicId) {
+    recognition.stop();
+    if(activeMicId === micBtnId) return;
+  }
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'zh-HK'; 
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  
+  recognition.onstart = () => {
+    activeMicId = micBtnId;
+    btn.classList.add("active");
+    btn.innerText = "🛑";
+  };
+  
+  recognition.onresult = (event) => {
+    const resultText = event.results[0][0].transcript;
+    const inputEl = document.getElementById(targetInputId);
+    if(inputEl) {
+      inputEl.value = (inputEl.value + resultText).trim();
+      if(targetInputId === 'weather-custom') updateMeta();
+    }
+  };
+  
+  recognition.onerror = (e) => { console.error(e); };
+  
+  recognition.onend = () => {
+    btn.classList.remove("active");
+    btn.innerText = "🎙️" + (micBtnId === 'mic-weather'?'':' 語音輸入');
+    activeMicId = null;
+  };
+  
+  recognition.start();
+}
+
+/* FIREWORKS EFFECT ON COMPLETION */
+function startFireworks() {
+  const canvas = document.getElementById("fw-canvas");
+  const ctx = canvas.getContext("2d");
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+  
+  window.addEventListener("resize", () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  });
+  
+  let particles = [];
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x; this.y = y; this.color = color;
+      this.radius = Math.random() * 3 + 1;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 6 + 2;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.alpha = 1;
+      this.gravity = 0.06;
+    }
+    draw() {
+      ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color; ctx.fill(); ctx.restore();
+    }
+    update() {
+      this.x += this.vx; this.vy += this.gravity; this.y += this.vy;
+      this.alpha -= 0.015;
+    }
+  }
+  
+  function spawnFirework() {
+    const fireX = Math.random() * width;
+    const fireY = Math.random() * (height * 0.4) + height * 0.1;
+    const colors = ["#ff4081", "#00e676", "#b388ff", "#ffea00", "#00e5ff", "#ff6e40"];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    for(let i=0; i<60; i++) particles.push(new Particle(fireX, fireY, color));
+  }
+  
+  let timer = setInterval(spawnFirework, 400);
+  setTimeout(() => { clearInterval(timer); }, 6000);
+  
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => { p.update(); p.draw(); });
+    if(particles.length > 0 || timer) requestAnimationFrame(animate);
+  }
+  animate();
+}
+</script>
+</body>
+</html>
