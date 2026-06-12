@@ -779,7 +779,7 @@ function renderHistoryList(pIdx) {
         // 呼叫比對函數產生紅綠標籤
         const diffHtml = highlightSuggestionDiff(ori, sug);
         item.innerHTML = `
-          <div style="font-size: 16px; color: #888; margin-bottom: 6px; text-decoration: line-through;">原句：${escapeHtml(ori)}</div>
+          <div style="font-size: 16px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ori)}</div>
           <div style="font-size: 20px;">建議：${diffHtml}</div>
         `;
       }
