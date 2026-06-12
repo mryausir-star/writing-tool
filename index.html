@@ -778,6 +778,7 @@ function renderHistoryList(pIdx) {
 
 /* SENTENCE CHECKING LOGIC WITH LLM */
 async function checkSentenceAction(pIdx) {
+  userSpeak(`🔍 檢查句子`);
   if(state.aiEvaluating) return;
   const ta = document.getElementById(`p-input-${pIdx}`);
   let text = ta.value.trim();
