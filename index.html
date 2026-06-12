@@ -749,7 +749,6 @@ function renderHistoryList(pIdx) {
   const zone = document.getElementById(`p-hist-zone-${pIdx}`);
   const list = document.getElementById(`p-hist-list-${pIdx}`);
   
-  // 找出有歷史记录的
   const filtered = pObj.sentences.filter(s => s.history && s.history.length > 0);
   if(filtered.length === 0) {
     zone.classList.add("hidden");
@@ -758,22 +757,61 @@ function renderHistoryList(pIdx) {
   zone.classList.remove("hidden");
   list.innerHTML = "";
   
+  // 動態修改原本的「本段已修改的舊句子」標題
+  const titleDiv = zone.querySelector('.history-title');
+  if(titleDiv) titleDiv.innerText = "💡 小筆的修改建議：";
+
   filtered.forEach(s => {
-    s.history.forEach(hText => {
+    s.history.forEach(hObj => {
+      // 兼容可能存在的舊字串格式
+      const ori = typeof hObj === 'string' ? hObj : hObj.ori;
+      const sug = typeof hObj === 'string' ? hObj : hObj.sug;
+
       const item = document.createElement("div");
       item.className = "history-item";
-      item.innerText = `舊版：${hText}`;
-      item.onmouseenter = () => {
-        const node = document.getElementById(`node-${pIdx}-${s.idx}`);
-        if(node) node.classList.add("highlight-active");
-      };
-      item.onmouseleave = () => {
-        const node = document.getElementById(`node-${pIdx}-${s.idx}`);
-        if(node) node.classList.remove("highlight-active");
-      };
+      item.style.padding = "10px 12px";
+      item.style.background = "#fff9f2";
+      item.style.borderLeft = "4px solid #ff9e42";
+      
+      if(typeof hObj === 'string' || !sug) {
+        item.innerText = `舊版：${ori}`;
+      } else {
+        // 呼叫比對函數產生紅綠標籤
+        const diffHtml = highlightSuggestionDiff(ori, sug);
+        item.innerHTML = `
+          <div style="font-size: 16px; color: #888; margin-bottom: 6px; text-decoration: line-through;">原句：${escapeHtml(ori)}</div>
+          <div style="font-size: 20px;">建議：${diffHtml}</div>
+        `;
+      }
+
       list.appendChild(item);
     });
   });
+}
+
+// 專門用來在學生還沒點擊按鈕前，提早顯示紅綠字修改建議的函數
+function showSuggestionInPanel(pIdx) {
+  const ana = state.tempAnalysis;
+  const zone = document.getElementById(`p-hist-zone-${pIdx}`);
+  const list = document.getElementById(`p-hist-list-${pIdx}`);
+  
+  // 打開隱藏區塊
+  zone.classList.remove("hidden");
+  
+  // 修改標題
+  const titleDiv = zone.querySelector('.history-title');
+  if(titleDiv) titleDiv.innerText = "💡 小筆的修改建議：";
+  
+  // 取得紅綠字標籤
+  const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
+  
+// 直接將原句與建議句塞入畫面
+  list.innerHTML = `
+    <div class="history-item" style="padding: 10px 12px; background: #fff9f2; border-left: 4px solid #ff9e42;">
+      <div style="font-size: 16px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ana.originalText)}</div>
+      <div style="font-size: 20px;">建議：${diffHtml}</div>
+    </div>
+  `;
 }
 
 /* SENTENCE CHECKING LOGIC WITH LLM */
@@ -853,17 +891,22 @@ function studentEvaluateFeedback(studentChoice) {
     // 句子不通順
     if(studentChoice === true) {
       userSpeak("👍 讀起來很通順！");
+      const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
+      showSuggestionInPanel(pIdx);
       botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
       userSpeak("🤔 好像有點不通順/有錯字");
-      botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n「${ana.suggestion}」`, [
+      const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
+      showSuggestionInPanel(pIdx);
+      botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     }
   }
 }
+  
 
 function showAdvancedSuggestion() {
   userSpeak("✨ 讓我看看升級版寫法");
@@ -920,20 +963,23 @@ function applyOriginalSentence() {
 function rejectAndRewriteSelf() {
   const pIdx = state.currentPIndex;
   const original = state.tempAnalysis.originalText;
-  
+  const suggestion = state.tempAnalysis.suggestion; // 抓取小筆的建議句
+
   const pObj = state.paragraphs[pIdx];
   const mockIdx = pObj.sentences.length;
   pObj.sentences.push({
     idx: mockIdx,
     text: "", 
     status: "hidden-node",
-    history: [original]
+    // 這裡改成儲存一個包含原句與建議的物件
+    history: [{ ori: original, sug: suggestion }] 
   });
-  
+
   document.getElementById(`p-input-${pIdx}`).focus();
   renderHistoryList(pIdx);
-  
-  botSpeak("你可以參考小筆剛才的建議，重新修改句子。");
+
+  // 引導學生看左下方
+  botSpeak("你可以參「小筆的修改建議」，保留綠色的字，修改紅色的字，試試重新輸入一次！");
 }
 
 function clearInputAndRefresh(pIdx) {
@@ -1122,7 +1168,7 @@ function botSpeak(text, options = []) {
   
   const b = document.createElement("div");
   b.className = "msg-bubble bot";
-  b.innerText = text;
+  b.innerHTML = text;
   
   if(options.length > 0) {
     const optDiv = document.createElement("div");
@@ -1269,6 +1315,43 @@ function toggleMic(targetInputId, micBtnId) {
   };
   
   recognition.start();
+}
+
+// 高亮原句
+function highlightSuggestionDiff(original, suggested) {
+  if (!original || !suggested) return escapeHtml(suggested || '');
+  const ori = original.trim();
+  const sug = suggested.trim();
+
+  if (ori === sug) {
+    return `<span style="color:#4caf50;">${escapeHtml(sug)}</span>`;
+  }
+
+  let start = 0;
+  while (start < ori.length && start < sug.length && ori[start] === sug[start]) {
+    start++;
+  }
+
+  let endOri = ori.length - 1;
+  let endSug = sug.length - 1;
+  while (endOri >= start && endSug >= start && ori[endOri] === sug[endSug]) {
+    endOri--;
+    endSug--;
+  }
+
+  const prefix = sug.substring(0, start);
+  const middle = sug.substring(start, endSug + 1);
+  const suffix = sug.substring(endSug + 1);
+
+  let html = '';
+  // 綠字：不需要修改的部分
+  if (prefix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(prefix)}</span>`;
+  // 紅字加底線：修改了的部分
+  if (middle) html += `<span style="color:#f44336; font-weight:bold; text-decoration:underline;">${escapeHtml(middle)}</span>`;
+  // 綠字：不需要修改的部分
+  if (suffix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(suffix)}</span>`;
+
+  return html;
 }
 
 /* FIREWORKS EFFECT ON COMPLETION */
