@@ -866,6 +866,7 @@ function studentEvaluateFeedback(studentChoice) {
 }
 
 function showAdvancedSuggestion() {
+  userSpeak("✨ 讓我看看升級版寫法");
   const ana = state.tempAnalysis;
   
   // 顯示 AI 給出的升級優化句
@@ -893,7 +894,7 @@ function applyAdvancedSentence() {
   
   // 清空輸入框並重新渲染畫面
   clearInputAndRefresh(pIdx);
-  botSpeak("漂亮！生動的升級版句子已經完美放入你的日記囉！加油，繼續寫下一句吧。🌟");
+  botSpeak("漂亮！生動的升級版句子已經完美放入你的日記囉！加油，繼續寫下去吧！🌟");
   checkFlowButtons();
 }
 
