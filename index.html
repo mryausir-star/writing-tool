@@ -819,7 +819,7 @@ async function checkSentenceAction(pIdx) {
     };
     
     // 詢問學生自主判斷
-    botSpeak(`我仔細看完你寫的句子：\n${text}\n\n你自己讀一遍，你覺得這句句子通順嗎？🤔`, [
+    botSpeak(`\n${text}\n\n你自己讀一遍，你覺得這句句子通順嗎？`, [
       { text: "👍 讀起來很通順！", action: "studentEvaluateFeedback(true)" },
       { text: "🤔 好像有點不通順/有錯字", action: "studentEvaluateFeedback(false)" }
     ]);
