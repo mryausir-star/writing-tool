@@ -819,7 +819,7 @@ async function checkSentenceAction(pIdx) {
     };
     
     // 詢問學生自主判斷
-    botSpeak(`我看完了！重新審視你剛才在暫存區寫的這句話：\n「${text}」\n\n你自己讀一遍，你覺得這句話通順嗎？🤔`, [
+    botSpeak(`我仔細看完你寫的句子：\n${text}\n\n你自己讀一遍，你覺得這句句子通順嗎？🤔`, [
       { text: "👍 讀起來很通順！", action: "studentEvaluateFeedback(true)" },
       { text: "🤔 好像有點不通順/有錯字", action: "studentEvaluateFeedback(false)" }
     ]);
@@ -837,12 +837,12 @@ function studentEvaluateFeedback(studentChoice) {
   const ana = state.tempAnalysis;
   
   if(ana.isFluent === true && studentChoice === true) {
-    botSpeak(`哈哈，你的語感真好！這句話確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
+    botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
       { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
       { text: "🔒 不用了，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
-    botSpeak(`其實這句話已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
+    botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
       { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
       { text: "🔒 沒關係，維持原句收錄", action: "applyOriginalSentence()" }
     ]);
@@ -925,7 +925,7 @@ function rejectAndRewriteSelf() {
   document.getElementById(`p-input-${pIdx}`).focus();
   renderHistoryList(pIdx);
   
-  botSpeak("沒問題，舊句子幫你存到下方了。你可以參考老師剛才的提示，重新輸入句子！✏️");
+  botSpeak("你可以參考老師剛才的提示，重新輸入句子！✏️");
 }
 
 function clearInputAndRefresh(pIdx) {
@@ -941,7 +941,7 @@ function clickedConfirmedSentence(pIdx, sIdx) {
   state.currentPIndex = pIdx;
   state.currentSIndex = sIdx;
   
-  botSpeak(`你點選了已經寫好的這句話：\n「${sObj.text}」\n\n這句話你想怎麼處理呢？✨`, [
+  botSpeak(`你點選了已經寫好的句子：\n「${sObj.text}」\n\n這句話你想怎麼處理呢？✨`, [
     { text: "✍️ 我想重新修改", action: "rollbackToEditor()" },
     { text: "🌸 沒事，只是看一看", action: "botSpeak('哈哈，這句寫得很棒，繼續保持！', [])" }
   ]);
