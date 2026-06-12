@@ -782,7 +782,7 @@ function renderHistoryList(pIdx) {
         const diffHtml = highlightSuggestionDiff(ori, sug);
         item.innerHTML = `
           <div style="font-size: 22px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ori)}</div>
-          <div style="font-size: 28px;">建議：${diffHtml}</div>
+          <div style="font-size: 30px;">建議：${diffHtml}</div>
         `;
       }
 
@@ -811,7 +811,7 @@ function showSuggestionInPanel(pIdx) {
   list.innerHTML = `
     <div class="history-item" style="padding: 10px 12px; background: #fff9f2; border-left: 4px solid #ff9e42;">
       <div style="font-size: 22px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ana.originalText)}</div>
-      <div style="font-size: 28px;">建議：${diffHtml}</div>
+      <div style="font-size: 30px;">建議：${diffHtml}</div>
     </div>
   `;
 }
@@ -1319,40 +1319,80 @@ function toggleMic(targetInputId, micBtnId) {
   recognition.start();
 }
 
-// 高亮原句
+// 高亮原句與建議句的差異（以分句為單位精準對比）
 function highlightSuggestionDiff(original, suggested) {
   if (!original || !suggested) return escapeHtml(suggested || '');
+
+  // 1. 標準化處理：將所有的「變體標點」統一轉為正規標點
+  const normalize = (str) => {
+    return str
+      .replace(/[﹕：]/g, '：')
+      .replace(/[﹖?]/g, '？')
+      .replace(/[，,]/g, '，')
+      .replace(/[。.]/g, '。')
+      .replace(/[！!]/g, '！');
+  };
+
   const ori = original.trim();
   const sug = suggested.trim();
+  
+  // 標準化後的版本用於比對
+  const nOri = normalize(ori);
+  const nSug = normalize(sug);
 
-  if (ori === sug) {
-    return `<span style="color:#4caf50;">${escapeHtml(sug)}</span>`;
+  if (nOri === nSug) {
+    return `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(sug)}</span>`;
   }
 
-  let start = 0;
-  while (start < ori.length && start < sug.length && ori[start] === sug[start]) {
-    start++;
-  }
-
-  let endOri = ori.length - 1;
-  let endSug = sug.length - 1;
-  while (endOri >= start && endSug >= start && ori[endOri] === sug[endSug]) {
-    endOri--;
-    endSug--;
-  }
-
-  const prefix = sug.substring(0, start);
-  const middle = sug.substring(start, endSug + 1);
-  const suffix = sug.substring(endSug + 1);
+  // 2. 切分邏輯：保留所有中英文常見標點作為切分點
+  const splitRegex = /([，。！？；：「」『』，。！？；：]+)/;
+  const oriParts = nOri.split(splitRegex);
+  const sugParts = nSug.split(splitRegex);
 
   let html = '';
-  // 綠字：不需要修改的部分
-  if (prefix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(prefix)}</span>`;
-  // 紅字加底線：修改了的部分
-  if (middle) html += `<span style="color:#f44336; font-weight:bold; text-decoration:underline;">${escapeHtml(middle)}</span>`;
-  // 綠字：不需要修改的部分
-  if (suffix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(suffix)}</span>`;
+  
+  // 3. 逐句比對邏輯
+  for (let i = 0; i < sugParts.length; i++) {
+    const sPart = sugParts[i];
+    const oPart = (i < oriParts.length) ? oriParts[i] : "";
 
+    // 如果這一小段完全一樣，直接標綠（包含標點符號）
+    if (sPart === oPart) {
+      html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(sPart)}</span>`;
+} else {
+      // 這裡處理不一致的部分
+      
+      // 【修改點】：檢查是否為標點符號
+      const isPunctuation = /[，。！？；：「」『』]/.test(sPart);
+      const isOriginalPunctuation = /[，。！？；：「」『』]/.test(oPart);
+
+      // 如果該區塊是標點符號，但與原句不同（例如：把句號改成了問號）
+      if (isPunctuation && sPart !== oPart) {
+        // 將修改後的標點標紅
+        html += `<span style="color:#f44336; font-weight:bold; text-decoration:underline;">${escapeHtml(sPart)}</span>`;
+      } 
+      // 如果該區塊本身就是標點且兩者相同，則維持綠色
+      else if (isPunctuation) {
+        html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(sPart)}</span>`;
+      } 
+      else {
+        // 文字有差異，進行紅綠標記（維持原本邏輯）
+        let start = 0;
+        while (start < oPart.length && start < sPart.length && oPart[start] === sPart[start]) { start++; }
+        let endOri = oPart.length - 1;
+        let endSug = sPart.length - 1;
+        while (endOri >= start && endSug >= start && oPart[endOri] === sPart[endSug]) { endOri--; endSug--; }
+
+        const prefix = sPart.substring(0, start);
+        const middle = sPart.substring(start, endSug + 1);
+        const suffix = sPart.substring(endSug + 1);
+
+        if (prefix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(prefix)}</span>`;
+        if (middle) html += `<span style="color:#f44336; font-weight:bold; text-decoration:underline;">${escapeHtml(middle)}</span>`;
+        if (suffix) html += `<span style="color:#4caf50; font-weight:bold;">${escapeHtml(suffix)}</span>`;
+      }
+    }
+  }
   return html;
 }
 
