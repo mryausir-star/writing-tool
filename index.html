@@ -849,11 +849,11 @@ function studentEvaluateFeedback(studentChoice) {
   } else {
     // 句子不通順
     if(studentChoice === true) {
-      botSpeak(`你的句子有點語法問題，這句讀起來確實有點不流暢。\n老師建議你可以這樣修改，語意會更清晰生動：\n\n「${ana.suggestion}」`, [
+      botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n老師建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
-      botSpeak(`你很有自省與覺察能力呢！這句讀起來確實有點不流暢。\n老師建議你可以這樣修改，語意會更清晰生動：\n\n「${ana.suggestion}」`, [
+      botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n老師建議你可以這樣修改，語意會更清晰：\n\n「${ana.suggestion}」`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     }
@@ -864,7 +864,7 @@ function showAdvancedSuggestion() {
   const ana = state.tempAnalysis;
   
   // 顯示 AI 給出的升級優化句
-  botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n「${ana.suggestion}」\n\n你喜歡這個更生動的句子嗎？`, [
+  botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n${ana.suggestion}\n\n你喜歡這個更生動的句子嗎？`, [
     { text: "❤️ 哇！用這個升級版寫法", action: "applyAdvancedSentence()" },
     { text: "🌿 不用了，我想用我原本寫的", action: "applyOriginalSentence()" }
   ]);
@@ -941,7 +941,7 @@ function clickedConfirmedSentence(pIdx, sIdx) {
   state.currentPIndex = pIdx;
   state.currentSIndex = sIdx;
   
-  botSpeak(`你點選了已經寫好的句子：\n「${sObj.text}」\n\n這句話你想怎麼處理呢？✨`, [
+  botSpeak(`你點選了已經寫好的句子：\n${sObj.text}\n\n這句話你想怎麼處理呢？✨`, [
     { text: "✍️ 我想重新修改", action: "rollbackToEditor()" },
     { text: "🌸 沒事，只是看一看", action: "botSpeak('哈哈，這句寫得很棒，繼續保持！', [])" }
   ]);
