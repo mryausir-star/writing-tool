@@ -645,7 +645,7 @@ function updateMeta() {
   
     if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
     if(state.paragraphs.length === 0) {
-      botSpeak(`日期和天氣都記錄好了！📆 ${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n這是一個很好的開始。🏆\n\n我已經在左邊幫你準備好了「第一段」的寫作引導，你可以用語音錄下你的句子，完成後按檢查按鈕讓我看看喔！`);
+      botSpeak(`日期和天氣都記錄好了！\n\n${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n這是一個很好的開始。\n\n我已經在左邊幫你準備好了「第一段」的寫作引導，你可以用語音錄下你的句子，完成後按檢查按鈕讓我看看喔！`);
       state.method = 'seq'; // 預設使用順序法
       addNewParagraphBlock();
     }
