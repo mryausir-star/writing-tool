@@ -1064,7 +1064,7 @@ function checkFlowButtons() {
 
 async function finalizeEssay() {
   setAiEvaluating(true);
-  botSpeak("哇！太了不起了，你竟然獨立完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......✨");
+  botSpeak("哇！太了不起了，你完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......✨");
   
   let fullContent = `題目：《${state.topic}的一天》\n日期：${state.month}月${state.day}日    星期${state.week}   ${state.weather}\n\n`;
   state.paragraphs.forEach(p => {
@@ -1073,15 +1073,17 @@ async function finalizeEssay() {
   });
   
   const sysPrompt = `你是一位超級溫柔、善於鼓勵孩子的小學語文名師。學生的日記已經大功告成。
-請針對學生的文章內容給出一封極具親和力、讚美與熱情鼓勵的點評信。
-信中要挑出學生寫得好的生動句子或詞彙進行具體誇獎，字數控制在180字以內。
-請用小學生能聽懂的語氣，最後祝他寫作進步。`;
+請針對學生的文章內容給出一段極具親和力、讚美與熱情鼓勵的評語。
+信中要先給予一段約50字的整體評語，然後分析每段的內容、優點和缺點，
+並挑出學生寫得好的生動句子或詞彙進行具體誇獎，最後加上改善建議，
+全部字數控制在250字以內。
+請用小學生能聽懂的用詞，最後祝他寫作進步。`;
 
   const review = await callLLM(sysPrompt, fullContent);
   setAiEvaluating(false);
   
   if(review) {
-    botSpeak(`🎉【小筆的結業點評信】🎉\n\n${review}`);
+    botSpeak(`🎉【小筆的評語】🎉\n\n${review}`);
   } else {
     botSpeak(`🎉 恭喜你完成草稿！今天你非常認真，每句話都有用心推敲，小筆為你感到無比驕傲！繼續保持這份熱情，你一定會成為寫作小達人的！🌟`);
   }
@@ -1139,7 +1141,7 @@ async function userSubmitChat() {
   
   if(text.includes("接下來應該寫甚麼") || text.includes("接下來寫什麼") || text.includes("怎麼寫") || text.includes("不知道寫什麼")) {
     sysPrompt = `
-    你是一位耐心、溫柔的小學寫作教室引導老師「小筆」。
+    你是一位耐心、溫柔的小學寫作助手「小筆」。
     當小學生卡住、不知道接下來該寫甚麼時，你的任務是根據他「目前已經寫出來的句子進度」給予適量的啟發和提問。
     
     ⚠️【鐵律規則】：
@@ -1148,7 +1150,7 @@ async function userSubmitChat() {
     3. 字數嚴格控制在 100 字以內，語氣要非常有耐心、充滿愛心。
     `;
   } else {
-    sysPrompt = `你是一位非常溫柔和藹的小學作文老師「小筆」。請回答學生關於寫作的日常閒聊或疑問。字數在100字內，保持童真口吻。`;
+    sysPrompt = `你是一位非常溫柔和藹的作文助手「小筆」。請回答學生關於寫作的日常閒聊或疑問。字數在100字內，保持童真口吻。`;
   }
   
   const reply = await callLLM(sysPrompt, `文章心情題目：《${state.topic}的一天》\n\n【當前寫作進度結構】：\n${writtenContext}\n\n學生此時問你：${text}`);
