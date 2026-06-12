@@ -1123,13 +1123,29 @@ function botSpeak(text, options = []) {
       const btn = document.createElement("button");
       btn.className = "inline-opt-btn";
       btn.innerText = opt.text;
-      btn.setAttribute("onclick", opt.action);
+      
+      // 【修改重點】不使用 setAttribute，改為綁定點擊事件
+      btn.onclick = function() {
+        // 1. 先將按鈕文字作為使用者的對話發出
+        userSpeak(opt.text);
+        // 2. 執行按鈕原本設定的動作字串
+        new Function(opt.action)();
+        // 3. 點擊後移除這些按鈕，保持聊天室版面整潔，並防止重複點擊
+        optDiv.remove(); 
+      };
+      
       optDiv.appendChild(btn);
     });
     b.appendChild(optDiv);
   }
   
   container.appendChild(b);
+  
+  // 讓滾動頁面自動置底，確保只顯示最新訊息，將舊訊息推上去
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 30);
+}
   
   // 讓滾動頁面自動置底，確保只顯示最新訊息，將舊訊息推上去
   setTimeout(() => {
