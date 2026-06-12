@@ -1107,7 +1107,7 @@ function renderCleanVersion() {
   }).filter(t=>t.length>0);
   
   el.innerHTML = `
-    <div class="clean-label">✨ 恭喜完稿！整潔版日記大成 ✨</div>
+    <div class="clean-label">✨ 恭喜完稿！</div>
     <h2>${escapeHtml(title)}</h2>
     <div class="clean-date">${escapeHtml(date)}</div>
     ${paras.map(p=>`<p>${escapeHtml(p)}</p>`).join("")}
