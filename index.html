@@ -837,11 +837,13 @@ function studentEvaluateFeedback(studentChoice) {
   const ana = state.tempAnalysis;
   
   if(ana.isFluent === true && studentChoice === true) {
+    userSpeak("👍 讀起來很通順！");
     botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
       { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
       { text: "🔒 不用了，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
+    userSpeak("🤔 好像有點不通順/有錯字");
     botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
       { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
       { text: "🔒 沒關係，維持原句收錄", action: "applyOriginalSentence()" }
@@ -849,10 +851,12 @@ function studentEvaluateFeedback(studentChoice) {
   } else {
     // 句子不通順
     if(studentChoice === true) {
+      userSpeak("👍 讀起來很通順！");
       botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
+      userSpeak("🤔 好像有點不通順/有錯字");
       botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n「${ana.suggestion}」`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
@@ -871,6 +875,7 @@ function showAdvancedSuggestion() {
 }
 
 function applyAdvancedSentence() {
+  userSpeak("❤️ 哇！用這個升級版寫法");
   const pIdx = state.currentPIndex;
   const advancedText = state.tempAnalysis.suggestion; // 取得優化句
   
@@ -892,6 +897,7 @@ function applyAdvancedSentence() {
 }
 
 function applyOriginalSentence() {
+  userSpeak("🌿 不用了，我想用我原本寫的");
   const pIdx = state.currentPIndex;
   const text = state.tempAnalysis.originalText;
   
@@ -905,7 +911,7 @@ function applyOriginalSentence() {
   });
   
   clearInputAndRefresh(pIdx);
-  botSpeak("成功把你的原創句子收錄進日記了！現在可以寫下一句。🌿");
+  botSpeak("成功把你的原創句子寫進日記了！現在可以寫下一句。🌿");
   checkFlowButtons();
 }
 
