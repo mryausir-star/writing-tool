@@ -849,11 +849,11 @@ function studentEvaluateFeedback(studentChoice) {
   } else {
     // 句子不通順
     if(studentChoice === true) {
-      botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n老師建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
+      botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n${ana.suggestion}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
-      botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n老師建議你可以這樣修改，語意會更清晰：\n\n「${ana.suggestion}」`, [
+      botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n小筆建議你可以這樣修改，語意會更清晰：\n\n「${ana.suggestion}」`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     }
