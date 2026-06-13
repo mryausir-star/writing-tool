@@ -752,7 +752,7 @@ function addNewParagraphBlock() {
       </div>
       <div class="editor-zone">
         <div class="editor-header">
-          <span>✏️ 句子輸入與檢查 <span class="collapse-btn" onclick="toggleInputArea(${idx})">👁️ 顯示/隱藏輸入區</span></span>
+          <span>✏️ 句子輸入與檢查 <span class="collapse-btn" onclick="toggleInputArea(${idx})">👁️ 顯示/隱藏</span></span>
           <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️ 語音輸入</button>
         </div>
         
@@ -846,7 +846,7 @@ function renderHistoryList(pIdx) {
     const titleDiv = zone.querySelector('.history-title');
     if (titleDiv) {
         titleDiv.innerHTML = `💡 小筆的修改建議：
-            <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏建議</span>`;
+            <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏</span>`;
     }
 
     list.innerHTML = "";
