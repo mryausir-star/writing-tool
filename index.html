@@ -469,7 +469,7 @@
   }
   .clean-box h2 { font-size: 28px; text-align: center; color: #8a4f1d; margin-bottom: 8px; }
   .clean-date { text-align: center; font-size: 20px; color: #333; margin-bottom: 20px; }
-  .clean-box p { font-size: 22px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
+  .clean-box p { font-size: 25px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
 
   /* Dots */
   .dots { display: inline-block; font-weight: bold; animation: blink 1.4s infinite both; }
@@ -875,10 +875,11 @@ async function checkSentenceAction(pIdx) {
   
   // 修改後的 sysPrompt
   const sysPrompt = `你是一位資深的小學語文作文批改老師。請審核學生寫的每句句子。請以小學生的理解水平，嚴格判斷它在"日常語法上是否通順、有無錯別字、內容是否對題、句與句之間的連接是否合理"。
+
 請務必嚴格以 JSON 格式回覆，不要帶有任何 Markdown 標籤或其餘文字，所有使用的引號不要使用‘’，請使用「」。
 格式要求如下：
 {"isFluent": true或false, "suggestion": "這裡只放修改後或優化後的完整句子", 
-  "explanation": "這裡放你對這句修改的簡單解釋，只需簡短說明即可"
+  "explanation": "這裡解釋為何這樣修改，例如：建議將「擠」改為「擁擠」，能讓句子描寫得更細緻。"
 }
 注意：isFluent 的判斷要嚴格，有倒裝、語病、斷句不清或無主語造成歧義應為 false，而suggestion 欄位內請不要包含解釋文字，explanation 欄位才是給右側 chatbot 顯示用的。`;
 
@@ -942,7 +943,7 @@ function studentEvaluateFeedback(studentChoice) {
       userSpeak("👍 讀起來很通順！");
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
-      botSpeak(`你的句子有點語法問題，讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
+      botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
