@@ -876,7 +876,7 @@ async function checkSentenceAction(pIdx) {
   const sysPrompt = `你是一位資深的小學語文作文批改老師。請審核學生寫的每句句子。請以小學生的理解水平，嚴格判斷它在"日常語法上是否通順、有無錯別字、內容是否對題、句與句之間的連接是否合理"。
 請務必嚴格以 JSON 格式回覆，不要帶有任何 Markdown 標籤或其餘文字，所有使用的引號不要使用‘’，請使用「」。
 格式要求如下：
-{"isFluent": true或false, "suggestion": "如果通順，請給出一句加入生動詞彙(修辭、成語)的進階升級優化句；如果不通順，請給出一句修改通順後的句子，並簡單解釋為甚麼你建議這樣修改(解釋的部分放在右邊的chatbot位置，不要放在左邊)"}
+{"isFluent": true或false, "suggestion": "如果通順，請給出一句加入生動詞彙(修辭、成語)的進階升級優化句；如果不通順，請給出一句修改通順後的句子，並在隔兩行的新行簡單解釋為甚麼你建議這樣修改(解釋的部分放在右邊的chatbot位置，不要放在左邊)"}
 注意：isFluent 的判斷要嚴格，有倒裝、語病、斷句不清或無主語造成歧義應為 false。`;
 
   const userPrompt = `學生的寫作題目：《${state.topic}的一天》\n當前段落位置：${state.paragraphs[pIdx].meta.name}\n學生剛才寫下的句子：${text}`;
