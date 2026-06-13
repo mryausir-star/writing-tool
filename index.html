@@ -530,7 +530,7 @@
         <select id="meta-day" onchange="updateMeta()"></select> 日 
         <span style="margin-left: 25px;">星期</span> <select id="meta-week" onchange="updateMeta()"></select>
         <select id="meta-weather" onchange="handleWeatherSelect()" style="margin-left: 25px;"></select>
-        <input type="text" id="weather-custom" class="hidden" placeholder="例：微風細雨" style="width:140px; font-size:20px; padding:4px 8px; display:inline-block; border-radius:8px;" oninput="updateMeta()" />
+        <input type="text" id="weather-custom" class="hidden" placeholder="例：微風細雨" style="width:140px; font-size:20px; padding:4px 8px; display:inline-block; border-radius:8px;" onchange="updateMeta()" />
         <button id="mic-weather" class="mic-btn hidden" style="width:40px; height:40px; font-size:16px;" onclick="toggleMic('weather-custom','mic-weather')">🎙️</button>
       </div>
     </div>
@@ -569,7 +569,8 @@ const state = {
   paragraphs: [], 
   currentPIndex: -1,
   currentSIndex: -1,
-  aiEvaluating: false
+  aiEvaluating: false,
+  lastMetaString: ""  // 👈 新增這行：用來記錄最後一次設定的日期天氣
 };
 
 // 中國數字映射表
@@ -691,11 +692,21 @@ function updateMeta() {
   state.week = document.getElementById("meta-week").value;
   state.weather = document.getElementById("weather-custom").value || document.getElementById("meta-weather").value;
   
-    if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
+  if(mVal && dVal && state.week && state.weather && state.weather !== "custom") {
+    // 組合當前的日期天氣字串
+    const currentMeta = `${state.month}月${state.day}日　星期${state.week}　${state.weather}`;
+
     if(state.paragraphs.length === 0) {
-      botSpeak(`日期和天氣都記錄好了！\n\n${state.month}月${state.day}日　　星期${state.week}　　${state.weather}\n\n這是一個很好的開始。\n\n我已經在左邊幫你準備好了「第一段」的寫作引導，你可以用語音錄下你的句子，完成後按檢查按鈕讓我看看喔！`);
+      // 第一次填寫完畢
+      state.lastMetaString = currentMeta;
+      botSpeak(`日期和天氣都記錄好了！\n\n${state.month}月${state.day}日　星期${state.week}　${state.weather}\n\n這是一個很好的開始。\n\n你現在可以在左邊位置用語音輸入句子，完成後按檢查按鈕讓我看看喔！`);
       state.method = 'seq'; // 預設使用順序法
       addNewParagraphBlock();
+      
+    } else if (state.lastMetaString !== currentMeta) {
+      // 已經開始寫作了，且學生修改了日期或天氣
+      state.lastMetaString = currentMeta;
+      botSpeak(`日記的日期和天氣已更新！✍️\n新的設定是：${state.month}月${state.day}日　星期${state.week}　${state.weather}`);
     }
   }
 }
@@ -905,7 +916,7 @@ function showSuggestionInPanel(pIdx) {
   const titleDiv = zone.querySelector('.history-title');
   if(titleDiv) {
       titleDiv.innerHTML = `💡 小筆的修改建議：
-          <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏建議</span>`;
+          <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏</span>`;
   }
 
   // 3. 取得紅綠字標籤
@@ -991,13 +1002,13 @@ function studentEvaluateFeedback(studentChoice) {
   
   if(ana.isFluent === true && studentChoice === true) {
     userSpeak("👍讀起來很通順！");
-    botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n你想看看其他寫法嗎？`, [
+    botSpeak(`哈哈，你的語感真好！這句句子確實非常通順，也沒有錯別字。👏\n你想看看其他寫法嗎？`, [
       { text: "🔥讓我看看其他寫法", action: "showAdvancedSuggestion()" },
       { text: "✅不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
     userSpeak("🤔好像有點不通順/有錯字");
-    botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要參考其他寫法嗎？`, [
+    botSpeak(`其實這句句子已經很流暢通順了！你對自己要求真高，太棒了。🌟\n要參考其他寫法嗎？`, [
       { text: "🔥讓我看看其他寫法", action: "showAdvancedSuggestion()" },
       { text: "✅不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
@@ -1029,13 +1040,13 @@ function showAdvancedSuggestion() {
   
   // 顯示 AI 給出的升級優化句
   botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n${ana.suggestion}\n\n你喜歡這個更生動的句子嗎？`, [
-    { text: "🔥採用這個升級版寫法", action: "applyAdvancedSentence()" },
+    { text: "🔥採用這個寫法", action: "applyAdvancedSentence()" },
     { text: "✅不用了，我想用我原本的句子", action: "applyOriginalSentence()" }
   ]);
 }
 
 function applyAdvancedSentence() {
-  userSpeak("🔥採用這個升級版寫法");
+  userSpeak("🔥採用這個寫法");
   const pIdx = state.currentPIndex;
   const advancedText = state.tempAnalysis.suggestion; // 取得優化句
   
