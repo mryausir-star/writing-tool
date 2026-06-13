@@ -992,14 +992,14 @@ function studentEvaluateFeedback(studentChoice) {
   if(ana.isFluent === true && studentChoice === true) {
     userSpeak("👍讀起來很通順！");
     botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n你想看看其他寫法嗎？`, [
-      { text: "讓我看看其他寫法", action: "showAdvancedSuggestion()" },
-      { text: "不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
+      { text: "🔥讓我看看其他寫法", action: "showAdvancedSuggestion()" },
+      { text: "✅不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
     userSpeak("🤔好像有點不通順/有錯字");
-    botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
-      { text: "讓我看看其他寫法", action: "showAdvancedSuggestion()" },
-      { text: "沒關係，維持原句收錄", action: "applyOriginalSentence()" }
+    botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要參考其他寫法嗎？`, [
+      { text: "🔥讓我看看其他寫法", action: "showAdvancedSuggestion()" },
+      { text: "✅不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else {
     // 句子不通順
@@ -1009,7 +1009,7 @@ function studentEvaluateFeedback(studentChoice) {
       showSuggestionInPanel(pIdx);
       botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
         { text: "🛠️我決定修改句子", action: "rejectAndRewriteSelf()" },
-        { text: "不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
+        { text: "✅不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
       ]);
     } else {
       userSpeak("🤔好像有點不通順/有錯字");
@@ -1029,13 +1029,13 @@ function showAdvancedSuggestion() {
   
   // 顯示 AI 給出的升級優化句
   botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n${ana.suggestion}\n\n你喜歡這個更生動的句子嗎？`, [
-    { text: "哇！用這個升級版寫法", action: "applyAdvancedSentence()" },
-    { text: "不用了，我想用我原本寫的", action: "applyOriginalSentence()" }
+    { text: "🔥採用這個升級版寫法", action: "applyAdvancedSentence()" },
+    { text: "✅不用了，我想用我原本的句子", action: "applyOriginalSentence()" }
   ]);
 }
 
 function applyAdvancedSentence() {
-  userSpeak("哇！用這個升級版寫法");
+  userSpeak("🔥採用這個升級版寫法");
   const pIdx = state.currentPIndex;
   const advancedText = state.tempAnalysis.suggestion; // 取得優化句
   
@@ -1057,7 +1057,7 @@ function applyAdvancedSentence() {
 }
 
 function applyOriginalSentence() {
-  userSpeak("不用了，我想用我原本寫的");
+  userSpeak("✅不用了，我想用我原本的句子");
   const pIdx = state.currentPIndex;
   const text = state.tempAnalysis.originalText;
   
