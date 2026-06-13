@@ -529,7 +529,7 @@
   </div>
 
   <div class="chatbot">
-    <div class="chat-header">👩‍🏫 寫作助手----小筆</div>
+    <div class="chat-header">✏️寫作助手----小筆</div>
     <div class="chat-msgs" id="chat-msgs"></div>
     <div class="chat-input-bar">
       <input type="text" id="chat-input" placeholder="歡迎發問" onkeypress="if(event.key==='Enter') userSubmitChat()" />
@@ -574,7 +574,7 @@ const invStructure = [
 /* INITIALIZATION ON LOAD */
 window.addEventListener("DOMContentLoaded", () => {
   initMetaDropdowns();
-  botSpeak("小朋友您好！我是你的寫作助手——小筆。🎉\n\n你想寫一篇怎樣的日記呢？先選個「心情」吧！");
+  botSpeak("小朋友您好！我是你的寫作助手——小筆。\n\n你想寫一篇怎樣的日記呢？先選個「心情」吧！");
 });
 
 function initMetaDropdowns() {
@@ -598,12 +598,12 @@ function initMetaDropdowns() {
   w.innerHTML = weekHtml;
   
   const wt = document.getElementById("meta-weather");
-  const weathers = ["☀️ 晴朗","☁️ 多雲","🌧️ 下雨","⛈️ 雷暴","🌬️ 大風"];
+  const weathers = ["☀️晴朗","☁️多雲","🌧️下雨","⛈️雷暴","🌬️大風"];
   let weatherHtml = '<option value="" disabled selected>請選擇天氣</option>';
   for (let i = 0; i < weathers.length; i++) {
     weatherHtml += '<option value="' + weathers[i] + '">' + weathers[i] + '</option>';
   }
-  weatherHtml += '<option value="custom">🎙️ 自訂天氣(語音)</option>';
+  weatherHtml += '<option value="custom">🎙️自訂天氣(語音)</option>';
   wt.innerHTML = weatherHtml;
 }
 
@@ -714,15 +714,15 @@ function addNewParagraphBlock() {
       </div>
       <div class="editor-zone">
         <div class="editor-header">
-          <span>✏️ 句子輸入與檢查</span>
-          <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️ 語音輸入</button>
+          <span>✏️句子輸入與檢查</span>
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️語音輸入</button>
         </div>
         <textarea id="p-input-${idx}" placeholder="請在此輸入文字"></textarea>
         <div class="btn-row">
-          <button class="btn" onclick="checkSentenceAction(${idx})">🔍 檢查句子</button>
+          <button class="btn" onclick="checkSentenceAction(${idx})">🔍檢查句子</button>
         </div>
         <div class="history-zone hidden" id="p-hist-zone-${idx}">
-          <div class="history-title">📋 本段已修改的舊句子：</div>
+          <div class="history-title">📋本段已修改的舊句子：</div>
           <div id="p-hist-list-${idx}"></div>
         </div>
       </div>
@@ -801,7 +801,7 @@ function renderHistoryList(pIdx) {
   
   // 動態修改原本的「本段已修改的舊句子」標題
   const titleDiv = zone.querySelector('.history-title');
-  if(titleDiv) titleDiv.innerText = "💡 小筆的修改建議：";
+  if(titleDiv) titleDiv.innerText = "💡小筆的修改建議：";
 
   filtered.forEach(s => {
     s.history.forEach(hObj => {
@@ -842,7 +842,7 @@ function showSuggestionInPanel(pIdx) {
   
   // 修改標題
   const titleDiv = zone.querySelector('.history-title');
-  if(titleDiv) titleDiv.innerText = "💡 小筆的修改建議：";
+  if(titleDiv) titleDiv.innerText = "💡小筆的修改建議：";
   
   // 取得紅綠字標籤
   const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
@@ -909,8 +909,8 @@ async function checkSentenceAction(pIdx) {
     
     // 詢問學生自主判斷
     botSpeak(`\n${text}\n\n你自己讀一遍，你覺得這句句子通順嗎？`, [
-      { text: "👍 讀起來很通順！", action: "studentEvaluateFeedback(true)" },
-      { text: "🤔 好像有點不通順/有錯字", action: "studentEvaluateFeedback(false)" }
+      { text: "👍讀起來很通順！", action: "studentEvaluateFeedback(true)" },
+      { text: "🤔好像有點不通順/有錯字", action: "studentEvaluateFeedback(false)" }
     ]);
     
   } catch(e) {
@@ -926,32 +926,32 @@ function studentEvaluateFeedback(studentChoice) {
   const ana = state.tempAnalysis;
   
   if(ana.isFluent === true && studentChoice === true) {
-    userSpeak("👍 讀起來很通順！");
+    userSpeak("👍讀起來很通順！");
     botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
-      { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
-      { text: "🔒 不用了，直接放入正式段落", action: "applyOriginalSentence()" }
+      { text: "讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
+      { text: "不用了，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
-    userSpeak("🤔 好像有點不通順/有錯字");
+    userSpeak("🤔好像有點不通順/有錯字");
     botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
-      { text: "✨ 讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
-      { text: "🔒 沒關係，維持原句收錄", action: "applyOriginalSentence()" }
+      { text: "讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
+      { text: "沒關係，維持原句收錄", action: "applyOriginalSentence()" }
     ]);
   } else {
     // 句子不通順
     if(studentChoice === true) {
-      userSpeak("👍 讀起來很通順！");
+      userSpeak("👍讀起來很通順！");
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
       botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
-        { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
+        { text: "🛠️我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
-      userSpeak("🤔 好像有點不通順/有錯字");
+      userSpeak("🤔好像有點不通順/有錯字");
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
       botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
-        { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
+        { text: "🛠️我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     }
   }
@@ -959,18 +959,18 @@ function studentEvaluateFeedback(studentChoice) {
   
 
 function showAdvancedSuggestion() {
-  userSpeak("✨ 讓我看看升級版寫法");
+  userSpeak("讓我看看升級版寫法");
   const ana = state.tempAnalysis;
   
   // 顯示 AI 給出的升級優化句
   botSpeak(`太棒了！愛學習的孩子進步最快。🚀\n小筆建議可以這樣寫：\n\n${ana.suggestion}\n\n你喜歡這個更生動的句子嗎？`, [
-    { text: "❤️ 哇！用這個升級版寫法", action: "applyAdvancedSentence()" },
-    { text: "🌿 不用了，我想用我原本寫的", action: "applyOriginalSentence()" }
+    { text: "哇！用這個升級版寫法", action: "applyAdvancedSentence()" },
+    { text: "不用了，我想用我原本寫的", action: "applyOriginalSentence()" }
   ]);
 }
 
 function applyAdvancedSentence() {
-  userSpeak("❤️ 哇！用這個升級版寫法");
+  userSpeak("哇！用這個升級版寫法");
   const pIdx = state.currentPIndex;
   const advancedText = state.tempAnalysis.suggestion; // 取得優化句
   
@@ -992,7 +992,7 @@ function applyAdvancedSentence() {
 }
 
 function applyOriginalSentence() {
-  userSpeak("🌿 不用了，我想用我原本寫的");
+  userSpeak("不用了，我想用我原本寫的");
   const pIdx = state.currentPIndex;
   const text = state.tempAnalysis.originalText;
   
@@ -1048,8 +1048,8 @@ function clickedConfirmedSentence(pIdx, sIdx) {
   state.currentSIndex = sIdx;
   
   botSpeak(`你點選了已經寫好的句子：\n${sObj.text}\n\n這句話你想怎麼處理呢？✨`, [
-    { text: "✍️ 我想重新修改", action: "rollbackToEditor()" },
-    { text: "🌸 沒事，只是看一看", action: "botSpeak('哈哈，這句寫得很棒，繼續保持！', [])" }
+    { text: "✍️我想重新修改", action: "rollbackToEditor()" },
+    { text: "沒事，只是看一看", action: "botSpeak('哈哈，這句寫得很棒，繼續保持！', [])" }
   ]);
 }
 
@@ -1069,7 +1069,7 @@ function rollbackToEditor() {
   
   const currentValInEditor = document.getElementById(`p-input-${pIdx}`).value.trim();
   if(currentValInEditor.length > 0) {
-    botSpeak("❌ 哎呀，你還有正在寫的字，請先把它清空、或是點擊檢查後，再把這一句退回修改喔！");
+    botSpeak("❌哎呀，你還有正在寫的字，請先把它清空、或是點擊檢查後，再把這一句退回修改喔！");
     return;
   }
   
@@ -1082,7 +1082,7 @@ function rollbackToEditor() {
   renderHistoryList(pIdx);
   document.getElementById(`p-input-${pIdx}`).focus();
   
-  botSpeak("修改句子後，記得再次點擊檢查按鈕讓我看看喔。✍️");
+  botSpeak("修改句子後，記得再次點擊檢查按鈕讓我看看喔。");
   checkFlowButtons();
 }
 
@@ -1114,7 +1114,7 @@ function checkFlowButtons() {
 
 async function finalizeEssay() {
   setAiEvaluating(true);
-  botSpeak("哇！太了不起了，你完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......✨");
+  botSpeak("哇！太了不起了，你完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......");
   
   let fullContent = `題目：《${state.topic}的一天》\n日期：${state.month}月${state.day}日    星期${state.week}   ${state.weather}\n\n`;
   state.paragraphs.forEach(p => {
