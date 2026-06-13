@@ -485,8 +485,8 @@
     margin-bottom: 12px;
     font-weight: bold;
   }
-  .clean-box h2 { font-size: 28px; text-align: center; color: #8a4f1d; margin-bottom: 8px; }
-  .clean-date { text-align: center; font-size: 20px; color: #333; margin-bottom: 20px; }
+  .clean-box h2 { font-size: 40px; text-align: center; color: #8a4f1d; margin-bottom: 8px; }
+  .clean-date { text-align: center; font-size: 40px; color: #333; margin-bottom: 20px; }
   .clean-box p { font-size: 40px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
 
   /* Dots */
@@ -579,7 +579,15 @@ const seqStructure = [
   { name: "第一段：(這段可以敍述一天的開始。)", prompt: "" },
   { name: "第二段：(接下來發生甚事﹖)", prompt: "" },
   { name: "第三段：", prompt: "" },
-  { name: "第四段：", prompt: "" }
+  { name: "第四段：", prompt: "" },
+  { name: "第五段：", prompt: "" },
+  { name: "第六段：", prompt: "" },
+  { name: "第七段：", prompt: "" },
+  { name: "第八段：", prompt: "" },
+  { name: "第九段：", prompt: "" },
+  { name: "第十段：", prompt: "" },
+  { name: "第十一段：", prompt: "" },
+  { name: "第十二段：", prompt: "" }
 ];
 
 const invStructure = [
@@ -707,14 +715,17 @@ function chooseMethod(type) {
 }
 
 function addNewParagraphBlock() {
-// 【新增這段】：在開啟新段落前，先把上一段的「建議列表」隱藏起來
+  // 1. 在開啟新段落前，先把上一段的「建議列表」與「輸入區」隱藏起來
   const prevIdx = state.paragraphs.length - 1;
   if (prevIdx >= 0) {
-      const prevList = document.getElementById(`p-hist-list-${prevIdx}`);
-      if (prevList) {
-          prevList.classList.add("hidden"); 
-      }
+    const prevList = document.getElementById(`p-hist-list-${prevIdx}`);
+    if (prevList) prevList.classList.add("hidden"); 
+    
+    // 【新增】：隱藏上一段的輸入區
+    const prevInputZone = document.getElementById(`p-input-zone-${prevIdx}`);
+    if (prevInputZone) prevInputZone.classList.add("hidden");
   }
+
   const structures = state.method === 'seq' ? seqStructure : invStructure;
   const idx = state.paragraphs.length;
   if(idx >= structures.length) return;
@@ -726,6 +737,7 @@ function addNewParagraphBlock() {
   };
   state.paragraphs.push(pObj);
   
+  // 【修改】：在標題旁加入顯示/隱藏按鈕，並用 p-input-zone 包住輸入框與檢查按鈕
   const pHtml = `
     <div class="p-box" id="p-box-${idx}">
       <div class="p-header">
@@ -740,15 +752,19 @@ function addNewParagraphBlock() {
       </div>
       <div class="editor-zone">
         <div class="editor-header">
-          <span>✏️句子輸入與檢查</span>
-          <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️語音輸入</button>
+          <span>✏️ 句子輸入與檢查 <span class="collapse-btn" onclick="toggleInputArea(${idx})">👁️ 顯示/隱藏輸入區</span></span>
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:16px;" onclick="toggleMic('p-input-${idx}', 'p-mic-${idx}')" id="p-mic-${idx}">🎙️ 語音輸入</button>
         </div>
-        <textarea id="p-input-${idx}" placeholder="請在此輸入文字"></textarea>
-        <div class="btn-row">
-          <button class="btn" onclick="checkSentenceAction(${idx})">🔍檢查句子</button>
+        
+        <div id="p-input-zone-${idx}">
+          <textarea id="p-input-${idx}" placeholder="請在此輸入文字"></textarea>
+          <div class="btn-row">
+            <button class="btn" onclick="checkSentenceAction(${idx})">🔍 檢查句子</button>
+          </div>
         </div>
+
         <div class="history-zone hidden" id="p-hist-zone-${idx}">
-          <div class="history-title">📋本段已修改的舊句子：</div>
+          <div class="history-title">💡 小筆的修改建議：</div>
           <div id="p-hist-list-${idx}"></div>
         </div>
       </div>
@@ -761,7 +777,6 @@ function addNewParagraphBlock() {
   // 滾動定位
   document.getElementById(`p-box-${idx}`).scrollIntoView({ behavior: "smooth" });
   
-  // 檢查是否所有段落都開完了，若開完則隱藏下一段按鈕
   if(state.paragraphs.length === structures.length) {
     document.getElementById("btn-next-p").classList.add("hidden");
   }
@@ -866,6 +881,14 @@ function toggleCollapse(pIdx) {
     const list = document.getElementById(`p-hist-list-${pIdx}`);
     // 切換建議列表的顯示/隱藏狀態
     list.classList.toggle("hidden");
+}
+
+// 新增這個開關函數，用來顯示/隱藏輸入區塊
+function toggleInputArea(pIdx) {
+    const zone = document.getElementById(`p-input-zone-${pIdx}`);
+    if (zone) {
+        zone.classList.toggle("hidden");
+    }
 }
 
 // 專門用來在學生還沒點擊按鈕前，提早顯示紅綠字修改建議的函數
@@ -1157,19 +1180,28 @@ function checkFlowButtons() {
 
 async function finalizeEssay() {
   setAiEvaluating(true);
+  // 【新增】：完稿時，自動隱藏最後一段的輸入區與建議列表
+  const lastIdx = state.paragraphs.length - 1;
+  if (lastIdx >= 0) {
+    const lastList = document.getElementById(`p-hist-list-${lastIdx}`);
+    if (lastList) lastList.classList.add("hidden");
+    
+    const lastInputZone = document.getElementById(`p-input-zone-${lastIdx}`);
+    if (lastInputZone) lastInputZone.classList.add("hidden");
+  }
   botSpeak("哇！太了不起了，你完成了整篇日記的創作！🎉\n小筆現在正在細細品味你的整篇作品，為你撰寫專屬的評語，請稍等一下喔......");
   
-  let fullContent = `題目：《${state.topic}的一天》\n日期：${state.month}月${state.day}日    星期${state.week}   ${state.weather}\n\n`;
+  let fullContent = `題目：《${state.topic}的一天》\n日期：${state.month}月${state.day}日   星期${state.week}   ${state.weather}\n\n`;
   state.paragraphs.forEach(p => {
     const pText = p.sentences.filter(s=>s.status==="ok").map(s=>s.text).join("");
     fullContent += `【${p.meta.name}】\n${pText}\n\n`;
   });
   
   const sysPrompt = `你是一位超級溫柔、善於鼓勵孩子的小學語文名師。學生的日記已經大功告成。
-請針對學生的文章內容給出一段極具親和力、讚美與熱情鼓勵的評語。
-信中要先給予一段約50字的整體評語，然後分析每段的內容、優點和缺點，
+請針對學生的文章內容給出中肯的、具親和力、讚美與熱情鼓勵的評語。
+評語中要先給予一段約50字的整體評語，例如整篇是否貼題和結尾有沒有回應題目，然後分段分析每段的內容、優點和缺點，
 並挑出學生寫得好的生動句子或詞彙進行具體誇獎，最後加上改善建議，
-全部字數控制在250字以內。
+全部字數控制在300字以內。
 請用小學生能聽懂的用詞，最後祝他寫作進步。`;
 
   const review = await callLLM(sysPrompt, fullContent);
@@ -1201,7 +1233,7 @@ function renderCleanVersion() {
   });
 
   const title = `《${state.topic}的一天》`;
-  const date = `${state.month}月${state.day}日　　星期${state.week}　${state.weather}`;
+  const date = `${state.month}月${state.day}日　星期${state.week}　${state.weather}`;
   const paras = state.paragraphs.map(p=>{
     return p.sentences.filter(s=>s.status==="ok").map(s=>s.text).join("");
   }).filter(t=>t.length>0);
