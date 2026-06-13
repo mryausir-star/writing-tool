@@ -78,6 +78,24 @@
     flex-wrap: wrap;
   }
 
+  /* 摺疊功能相關樣式 */
+  .history-zone.collapsed {
+    display: none !important;
+  }
+  .collapse-btn {
+    cursor: pointer;
+    font-size: 22px;
+    color: #666;
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+    transition: background 0.2s;
+  }
+  .collapse-btn:hover {
+    background: #ddd;
+  }
+
 /* 2. 所有下拉式選單的文字放大並置中 */
   select {
     font-size: 22px;
@@ -171,7 +189,7 @@
     box-shadow: 0 4px 10px rgba(217,107,30,0.03);
   }
   .p-header {
-    font-size: 22px;
+    font-size: 25px;
     font-weight: bold;
     color: #d96b1e;
     margin-bottom: 14px;
@@ -207,7 +225,7 @@
     min-height: 60px;
     line-height: 1.8;
     margin-bottom: 16px;
-    font-size: 22px;
+    font-size: 30px;
   }
   .sent-node {
     display: inline;
@@ -276,7 +294,7 @@
     padding-top: 8px;
   }
   .history-title {
-    font-size: 16px;
+    font-size: 22px;
     color: #999;
     margin-bottom: 6px;
     font-weight: bold;
@@ -469,7 +487,7 @@
   }
   .clean-box h2 { font-size: 28px; text-align: center; color: #8a4f1d; margin-bottom: 8px; }
   .clean-date { text-align: center; font-size: 20px; color: #333; margin-bottom: 20px; }
-  .clean-box p { font-size: 25px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
+  .clean-box p { font-size: 40px; line-height: 2; text-align: justify; margin-bottom: 12px; text-indent: 2em; }
 
   /* Dots */
   .dots { display: inline-block; font-weight: bold; animation: blink 1.4s infinite both; }
@@ -499,9 +517,9 @@
       《
       <select id="topic-select" onchange="handleTopicChange()">
         <option value="" disabled selected>請選擇心情</option>
-        <option value="愉快">愉快 ☀️</option>
-        <option value="難忘">難忘 🌟</option>
-        <option value="傷心">傷心 💧</option>
+        <option value="愉快">愉快☀️</option>
+        <option value="難忘">難忘🌟</option>
+        <option value="傷心">傷心💧</option>
       </select>
       的一天》
     </div>
@@ -579,7 +597,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function initMetaDropdowns() {
   const m = document.getElementById("meta-month");
-  // 修正：不用 Array.from 和箭頭函式，改用最安全的標準 for 迴圈
+  // 修改：不用 Array.from 和箭頭函式，改用最安全的標準 for 迴圈
   let monthHtml = '<option value="" disabled selected> </option>';
   for (let i = 1; i <= 12; i++) {
     monthHtml += '<option value="' + i + '">' + chineseNumbers[i] + '</option>';
@@ -612,7 +630,7 @@ function fillDaysDropdown(maxDays) {
   const d = document.getElementById("meta-day");
   const currentVal = d.value;
   
-  // 修正：同樣改用最安全的標準 for 迴圈
+  // 修改：同樣改用最安全的標準 for 迴圈
   let dayHtml = '<option value="" disabled selected> </option>';
   for (let i = 1; i <= maxDays; i++) {
     dayHtml += '<option value="' + i + '">' + chineseNumbers[i] + '</option>';
@@ -689,6 +707,14 @@ function chooseMethod(type) {
 }
 
 function addNewParagraphBlock() {
+// 【新增這段】：在開啟新段落前，先把上一段的「建議列表」隱藏起來
+  const prevIdx = state.paragraphs.length - 1;
+  if (prevIdx >= 0) {
+      const prevList = document.getElementById(`p-hist-list-${prevIdx}`);
+      if (prevList) {
+          prevList.classList.add("hidden"); 
+      }
+  }
   const structures = state.method === 'seq' ? seqStructure : invStructure;
   const idx = state.paragraphs.length;
   if(idx >= structures.length) return;
@@ -787,48 +813,59 @@ function renderParagraphText(pIdx) {
 }
 
 function renderHistoryList(pIdx) {
-  const pObj = state.paragraphs[pIdx];
-  const zone = document.getElementById(`p-hist-zone-${pIdx}`);
-  const list = document.getElementById(`p-hist-list-${pIdx}`);
-  
-  const filtered = pObj.sentences.filter(s => s.history && s.history.length > 0);
-  if(filtered.length === 0) {
-    zone.classList.add("hidden");
-    return;
-  }
-  zone.classList.remove("hidden");
-  list.innerHTML = "";
-  
-  // 動態修改原本的「本段已修改的舊句子」標題
-  const titleDiv = zone.querySelector('.history-title');
-  if(titleDiv) titleDiv.innerText = "💡小筆的修改建議：";
+    const pObj = state.paragraphs[pIdx];
+    const zone = document.getElementById(`p-hist-zone-${pIdx}`);
+    const list = document.getElementById(`p-hist-list-${pIdx}`);
+    
+    const filtered = pObj.sentences.filter(s => s.history && s.history.length > 0);
+    
+    if (filtered.length === 0) {
+        zone.classList.add("hidden");
+        return;
+    }
+    
+    zone.classList.remove("hidden");
+    list.classList.remove("hidden"); 
+    
+    // 【修改這裡】：統一用 innerHTML 放入標題與按鈕，避免按鈕被吃掉
+    const titleDiv = zone.querySelector('.history-title');
+    if (titleDiv) {
+        titleDiv.innerHTML = `💡 小筆的修改建議：
+            <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏建議</span>`;
+    }
 
-  filtered.forEach(s => {
-    s.history.forEach(hObj => {
-      // 兼容可能存在的舊字串格式
-      const ori = typeof hObj === 'string' ? hObj : hObj.ori;
-      const sug = typeof hObj === 'string' ? hObj : hObj.sug;
+    list.innerHTML = "";
+    
+    filtered.forEach(s => {
+        s.history.forEach(hObj => {
+            const ori = typeof hObj === 'string' ? hObj : hObj.ori;
+            const sug = typeof hObj === 'string' ? hObj : hObj.sug;
 
-      const item = document.createElement("div");
-      item.className = "history-item";
-      item.style.padding = "10px 12px";
-      item.style.background = "#fff9f2";
-      item.style.borderLeft = "4px solid #ff9e42";
-      
-      if(typeof hObj === 'string' || !sug) {
-        item.innerText = `舊版：${ori}`;
-      } else {
-        // 呼叫比對函數產生紅綠標籤
-        const diffHtml = highlightSuggestionDiff(ori, sug);
-        item.innerHTML = `
-          <div style="font-size: 22px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ori)}</div>
-          <div style="font-size: 30px;">建議：${diffHtml}</div>
-        `;
-      }
-
-      list.appendChild(item);
+            const item = document.createElement("div");
+            item.className = "history-item";
+            item.style.padding = "10px 12px";
+            item.style.background = "#fff9f2";
+            item.style.borderLeft = "4px solid #ff9e42";
+            item.style.marginBottom = "10px";
+            
+            if(typeof hObj === 'string' || !sug) {
+                item.innerText = `舊版：${ori}`;
+            } else {
+                const diffHtml = highlightSuggestionDiff(ori, sug);
+                item.innerHTML = `
+                    <div style="font-size: 22px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ori)}</div>
+                    <div style="font-size: 30px;">建議：${diffHtml}</div>
+                `;
+            }
+            list.appendChild(item);
+        });
     });
-  });
+}
+
+function toggleCollapse(pIdx) {
+    const list = document.getElementById(`p-hist-list-${pIdx}`);
+    // 切換建議列表的顯示/隱藏狀態
+    list.classList.toggle("hidden");
 }
 
 // 專門用來在學生還沒點擊按鈕前，提早顯示紅綠字修改建議的函數
@@ -836,18 +873,22 @@ function showSuggestionInPanel(pIdx) {
   const ana = state.tempAnalysis;
   const zone = document.getElementById(`p-hist-zone-${pIdx}`);
   const list = document.getElementById(`p-hist-list-${pIdx}`);
-  
-  // 打開隱藏區塊
+
+  // 1. 打開隱藏區塊與列表
   zone.classList.remove("hidden");
-  
-  // 修改標題
+  list.classList.remove("hidden"); // 確保每次顯示新建議時，列表是打開的
+
+  // 2. 修改標題，【並且同時保留按鈕】
   const titleDiv = zone.querySelector('.history-title');
-  if(titleDiv) titleDiv.innerText = "💡小筆的修改建議：";
-  
-  // 取得紅綠字標籤
+  if(titleDiv) {
+      titleDiv.innerHTML = `💡 小筆的修改建議：
+          <span class="collapse-btn" onclick="toggleCollapse(${pIdx})">👁️ 顯示/隱藏建議</span>`;
+  }
+
+  // 3. 取得紅綠字標籤
   const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
-  
-// 直接將原句與建議句塞入畫面
+
+  // 4. 直接將原句與建議句塞入畫面
   list.innerHTML = `
     <div class="history-item" style="padding: 10px 12px; background: #fff9f2; border-left: 4px solid #ff9e42;">
       <div style="font-size: 22px; color: #888; margin-bottom: 6px;">原句：${escapeHtml(ana.originalText)}</div>
@@ -876,7 +917,7 @@ async function checkSentenceAction(pIdx) {
   // 修改後的 sysPrompt
   const sysPrompt = `你是一位資深的小學語文作文批改老師。請審核學生寫的每句句子。請以小學生的理解水平，嚴格判斷它在"日常語法上是否通順、有無錯別字、內容是否對題、句與句之間的連接是否合理"。
 
-請務必嚴格以 JSON 格式回覆，不要帶有任何 Markdown 標籤或其餘文字，所有使用的引號不要使用‘’，請使用「」。
+請務必嚴格以 JSON 格式回覆，不要帶有任何 Markdown 標籤或其餘文字，所有使用的引號不要使用‘’，請使用「」，且請遵循香港教育局《香港小學學習字詞表》的用字習慣，針對香港繁體字，請優先使用「裏」而非「裡」，使用「着」而非「著」等。
 格式要求如下：
 {"isFluent": true或false, "suggestion": "這裡只放修改後或優化後的完整句子", 
   "explanation": "這裡解釋為何這樣修改，例如：建議將「擠」改為「擁擠」，能讓句子描寫得更細緻。"
@@ -927,14 +968,14 @@ function studentEvaluateFeedback(studentChoice) {
   
   if(ana.isFluent === true && studentChoice === true) {
     userSpeak("👍讀起來很通順！");
-    botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n小筆在想，如果想讓文章拿到更高的分數，你想看看更生動豐富的「升級版寫法」嗎？`, [
-      { text: "讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
-      { text: "不用了，直接放入正式段落", action: "applyOriginalSentence()" }
+    botSpeak(`哈哈，你的語感真好！這句句子確實非常通順、沒有錯字。👏\n你想看看其他寫法嗎？`, [
+      { text: "讓我看看其他寫法", action: "showAdvancedSuggestion()" },
+      { text: "不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
     ]);
   } else if(ana.isFluent === true && studentChoice === false) {
     userSpeak("🤔好像有點不通順/有錯字");
     botSpeak(`其實這句句子已經很流暢通順囉！你對自己要求真高，太棒了。🌟\n要不要來參考看看小筆為這句話特別設計的「修辭升級版」？`, [
-      { text: "讓我看看升級版寫法", action: "showAdvancedSuggestion()" },
+      { text: "讓我看看其他寫法", action: "showAdvancedSuggestion()" },
       { text: "沒關係，維持原句收錄", action: "applyOriginalSentence()" }
     ]);
   } else {
@@ -944,14 +985,15 @@ function studentEvaluateFeedback(studentChoice) {
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
       botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
-        { text: "🛠️我決定修正句子", action: "rejectAndRewriteSelf()" }
+        { text: "🛠️我決定修改句子", action: "rejectAndRewriteSelf()" },
+        { text: "不用修改，直接放入正式段落", action: "applyOriginalSentence()" }
       ]);
     } else {
       userSpeak("🤔好像有點不通順/有錯字");
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
       botSpeak(`你很有自省與覺察能力呢！這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
-        { text: "🛠️我決定修正句子", action: "rejectAndRewriteSelf()" }
+        { text: "🛠️我決定修改句子", action: "rejectAndRewriteSelf()" }
       ]);
     }
   }
@@ -959,7 +1001,7 @@ function studentEvaluateFeedback(studentChoice) {
   
 
 function showAdvancedSuggestion() {
-  userSpeak("讓我看看升級版寫法");
+  userSpeak("讓我看看其他寫法");
   const ana = state.tempAnalysis;
   
   // 顯示 AI 給出的升級優化句
@@ -1006,13 +1048,14 @@ function applyOriginalSentence() {
   });
   
   clearInputAndRefresh(pIdx);
-  botSpeak("成功把你的原創句子寫進日記了！現在可以寫下一句。🌿");
+  botSpeak("成功把你的原創句子寫進日記了！現在可以寫下一句或下一段。");
   checkFlowButtons();
   renderParagraphText(pIdx); 
   updateAllWordCounts();
 }
 
 function rejectAndRewriteSelf() {
+  userSpeak("我決定修改句子");
   const pIdx = state.currentPIndex;
   const original = state.tempAnalysis.originalText;
   const suggestion = state.tempAnalysis.suggestion; // 抓取小筆的建議句
