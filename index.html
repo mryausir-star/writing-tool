@@ -942,7 +942,7 @@ function studentEvaluateFeedback(studentChoice) {
       userSpeak("👍 讀起來很通順！");
       const diffHtml = highlightSuggestionDiff(ana.originalText, ana.suggestion);
       showSuggestionInPanel(pIdx);
-      botSpeak(`你的句子有點語法問題，這句讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
+      botSpeak(`你的句子有點語法問題，讀起來不太流暢。\n\n小筆建議你可以這樣修改：\n${ana.suggestion}\n\n💡【小筆的意見】：\n${ana.explanation}`, [
         { text: "🛠️ 我決定修正句子", action: "rejectAndRewriteSelf()" }
       ]);
     } else {
